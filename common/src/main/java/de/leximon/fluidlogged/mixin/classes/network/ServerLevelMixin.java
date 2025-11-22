@@ -29,7 +29,7 @@ public abstract class ServerLevelMixin extends Level implements ClientLevelExten
     }
 
     @Override
-    public void sendFluidUpdated(BlockPos blockPos, int flags) {
-        ((ServerChunkCacheExtension) this.getChunkSource()).fluidChanged(blockPos);
+    public void fluidlogged$sendFluidUpdated(BlockPos blockPos, int flags) {
+        ((ServerChunkCacheExtension) this.getChunkSource()).fluidlogged$fluidChanged(blockPos);
     }
 }

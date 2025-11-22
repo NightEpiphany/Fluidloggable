@@ -4,6 +4,6 @@ import net.minecraft.core.BlockPos;
 
 public interface ServerChunkCacheExtension {
 
-    void fluidChanged(BlockPos blockPos);
+    void fluidlogged$fluidChanged(BlockPos blockPos);
 
 }

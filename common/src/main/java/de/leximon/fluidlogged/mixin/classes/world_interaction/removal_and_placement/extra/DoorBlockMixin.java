@@ -14,7 +14,7 @@ public class DoorBlockMixin {
 
     @Redirect(method = "setPlacedBy", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z"))
     private boolean redirectFluidPlacementByUpperDoor(Level instance, BlockPos blockPos, BlockState blockState, int flags) {
-        return ((LevelExtension) instance).setBlockAndInsertFluidIfPossible(blockPos, blockState, flags);
+        return ((LevelExtension) instance).fluidlogged$setBlockAndInsertFluidIfPossible(blockPos, blockState, flags);
     }
 
 }

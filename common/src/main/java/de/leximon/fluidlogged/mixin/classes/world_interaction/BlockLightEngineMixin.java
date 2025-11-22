@@ -23,7 +23,7 @@ public abstract class BlockLightEngineMixin extends LightEngine<BlockLightSectio
 
     @Shadow @Final private BlockPos.MutableBlockPos mutablePos;
 
-    @Unique private FluidState fluidloggedFluidState;
+    @Unique private FluidState fluidlogged$fluidloggedFluidState;
 
     protected BlockLightEngineMixin(LightChunkGetter lightChunkGetter, BlockLightSectionStorage layerLightSectionStorage) {
         super(lightChunkGetter, layerLightSectionStorage);
@@ -36,24 +36,24 @@ public abstract class BlockLightEngineMixin extends LightEngine<BlockLightSectio
         LightChunk lightChunk = this.getChunk(i, j);
 
         if (lightChunk == null) {
-            this.fluidloggedFluidState = Fluids.EMPTY.defaultFluidState();
+            this.fluidlogged$fluidloggedFluidState = Fluids.EMPTY.defaultFluidState();
             return;
         }
 
         FluidState fluidState = lightChunk.getFluidState(this.mutablePos);
         if (fluidState == null) { // fixes a crash with the create mod, not ideal, but it works without any problems
-            this.fluidloggedFluidState = Fluids.EMPTY.defaultFluidState();
+            this.fluidlogged$fluidloggedFluidState = Fluids.EMPTY.defaultFluidState();
             return;
         }
 
-        this.fluidloggedFluidState = fluidState;
+        this.fluidlogged$fluidloggedFluidState = fluidState;
     }
 
 
     @SuppressWarnings("InvalidInjectorMethodSignature")
     @ModifyVariable(method = "getEmission", at = @At("STORE"), ordinal = 0)
     private int injectFluidLight(int i) {
-        return Math.max(i, this.fluidloggedFluidState.createLegacyBlock().getLightEmission());
+        return Math.max(i, this.fluidlogged$fluidloggedFluidState.createLegacyBlock().getLightEmission());
     }
 
 }

@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public record Addon(
         boolean enabledByDefault,
@@ -38,6 +40,13 @@ public record Addon(
                 }
                 return this;
             }
+
+        public Builder fluidloggableBlocks(Supplier<Collection<Block>> blocks) {
+            for (Block block : blocks.get()) {
+                this.fluidloggableBlocks.add(Either.left(block));
+            }
+            return this;
+        }
 
             public Builder fluidloggableBlocks(Block... blocks) {
                 return fluidloggableBlocks(Arrays.asList(blocks));

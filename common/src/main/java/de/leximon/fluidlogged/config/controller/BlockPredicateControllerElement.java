@@ -7,12 +7,10 @@ import dev.isxander.yacl3.gui.controllers.string.IStringController;
 import dev.isxander.yacl3.gui.controllers.string.StringControllerElement;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.block.Block;
 
 import java.util.Optional;
@@ -20,7 +18,7 @@ import java.util.function.Consumer;
 
 public class BlockPredicateControllerElement extends StringControllerElement {
 
-    private static final ResourceLocation TAG_ICON_LOCATION = Fluidlogged.id("textures/tag_icon.png");
+    private static final ResourceLocation TAG_ICON_LOCATION = Fluidlogged.id("assets/fluidlogged/textures/tag_icon.png");
 
     private PreviewState previewState;
     private ItemStack blockPreview;

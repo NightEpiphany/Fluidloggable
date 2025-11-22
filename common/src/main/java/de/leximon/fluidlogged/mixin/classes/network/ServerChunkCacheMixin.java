@@ -17,13 +17,13 @@ public abstract class ServerChunkCacheMixin implements ServerChunkCacheExtension
     @Shadow @Nullable protected abstract ChunkHolder getVisibleChunkIfPresent(long l);
 
     @Override
-    public void fluidChanged(BlockPos blockPos) {
+    public void fluidlogged$fluidChanged(BlockPos blockPos) {
         int chunkX = SectionPos.blockToSectionCoord(blockPos.getX());
         int chunkZ = SectionPos.blockToSectionCoord(blockPos.getZ());
 
         ChunkHolder chunkHolder = this.getVisibleChunkIfPresent(ChunkPos.asLong(chunkX, chunkZ));
         if (chunkHolder != null)
-            ((ChunkHolderExtension) chunkHolder).fluidChanged(blockPos);
+            ((ChunkHolderExtension) chunkHolder).fluidlogged$fluidChanged(blockPos);
     }
 
 }

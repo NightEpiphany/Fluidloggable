@@ -37,7 +37,7 @@ public abstract class ChunkSerializerMixin {
 
     @Inject(method = "read", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/ai/village/poi/PoiManager;checkConsistencyWithBlocks(Lnet/minecraft/core/SectionPos;Lnet/minecraft/world/level/chunk/LevelChunkSection;)V"), locals = LocalCapture.CAPTURE_FAILHARD)
     private static void injectRead(ServerLevel serverLevel, PoiManager poiManager, RegionStorageInfo regionStorageInfo, ChunkPos chunkPos, CompoundTag compoundTag, CallbackInfoReturnable<ProtoChunk> cir, ChunkPos chunkPos2, UpgradeData upgradeData, boolean bl, ListTag listTag, int i, LevelChunkSection[] levelChunkSections, boolean bl2, ChunkSource chunkSource, LevelLightEngine levelLightEngine, Registry registry, Codec codec, boolean bl3, int j, CompoundTag compoundTag2, int k, int l, PalettedContainer palettedContainer, PalettedContainerRO palettedContainerRO, LevelChunkSection levelChunkSection, SectionPos sectionPos) {
-        Short2ObjectMap<FluidState> container = ((LevelChunkSectionExtension) levelChunkSection).createAndSetFluidStatesMap();
+        Short2ObjectMap<FluidState> container = ((LevelChunkSectionExtension) levelChunkSection).fluidlogged$createAndSetFluidStatesMap();
         if (compoundTag2.contains("fluidlogged.fluid_states", Tag.TAG_COMPOUND)) {
             CompoundTag fluidStates = compoundTag2.getCompound("fluidlogged.fluid_states");
 
@@ -64,7 +64,7 @@ public abstract class ChunkSerializerMixin {
 
     @Inject(method = "write", at = @At(value = "INVOKE", target = "Lcom/mojang/serialization/Codec;encodeStart(Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;", ordinal = 3), locals = LocalCapture.CAPTURE_FAILHARD)
     private static void injectWrite(ServerLevel serverLevel, ChunkAccess chunkAccess, CallbackInfoReturnable<CompoundTag> cir, ChunkPos chunkPos, CompoundTag compoundTag, BlendingData blendingData, BelowZeroRetrogen belowZeroRetrogen, UpgradeData upgradeData, LevelChunkSection[] levelChunkSections, ListTag listTag, LevelLightEngine levelLightEngine, Registry registry, Codec codec, boolean bl, int i, int j, boolean bl2, DataLayer dataLayer, DataLayer dataLayer2, CompoundTag compoundTag2, LevelChunkSection levelChunkSection) {
-        Short2ObjectMap<FluidState> container = ((LevelChunkSectionExtension) levelChunkSection).getFluidStates();
+        Short2ObjectMap<FluidState> container = ((LevelChunkSectionExtension) levelChunkSection).fluidlogged$getFluidStates();
         CompoundTag fluidStates = new CompoundTag();
 
         // fill the palette

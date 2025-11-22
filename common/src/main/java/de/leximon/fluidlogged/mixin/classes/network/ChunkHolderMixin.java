@@ -1,21 +1,17 @@
 package de.leximon.fluidlogged.mixin.classes.network;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import de.leximon.fluidlogged.mixin.extensions.ChunkHolderExtension;
 import de.leximon.fluidlogged.mixin.extensions.LevelChunkSectionExtension;
-import de.leximon.fluidlogged.mixin.extensions.LevelExtension;
 import de.leximon.fluidlogged.platform.services.Services;
 import it.unimi.dsi.fastutil.shorts.ShortOpenHashSet;
 import it.unimi.dsi.fastutil.shorts.ShortSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
-import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
-import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket;
 import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelHeightAccessor;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.lighting.LevelLightEngine;
@@ -29,7 +25,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.List;
 
@@ -40,24 +35,24 @@ public abstract class ChunkHolderMixin implements ChunkHolderExtension {
     @Shadow @Final private LevelHeightAccessor levelHeightAccessor;
     @Shadow private boolean hasChangedSections;
 
-    @Unique private ShortSet[] changedFluidsPerSection;
+    @Unique private ShortSet[] fluidlogged$changedFluidsPerSection;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void injectInit(ChunkPos chunkPos, int i, LevelHeightAccessor levelHeightAccessor, LevelLightEngine levelLightEngine, ChunkHolder.LevelChangeListener levelChangeListener, ChunkHolder.PlayerProvider playerProvider, CallbackInfo ci) {
-        this.changedFluidsPerSection = new ShortSet[levelHeightAccessor.getSectionsCount()];
+        this.fluidlogged$changedFluidsPerSection = new ShortSet[levelHeightAccessor.getSectionsCount()];
     }
 
     @Override
-    public void fluidChanged(BlockPos blockPos) {
+    public void fluidlogged$fluidChanged(BlockPos blockPos) {
         LevelChunk levelChunk = this.getTickingChunk();
         if (levelChunk != null) {
             int i = this.levelHeightAccessor.getSectionIndex(blockPos.getY());
-            if (this.changedFluidsPerSection[i] == null) {
+            if (this.fluidlogged$changedFluidsPerSection[i] == null) {
                 this.hasChangedSections = true;
-                this.changedFluidsPerSection[i] = new ShortOpenHashSet();
+                this.fluidlogged$changedFluidsPerSection[i] = new ShortOpenHashSet();
             }
 
-            this.changedFluidsPerSection[i].add(SectionPos.sectionRelativePos(blockPos));
+            this.fluidlogged$changedFluidsPerSection[i].add(SectionPos.sectionRelativePos(blockPos));
         }
     }
 
@@ -68,15 +63,14 @@ public abstract class ChunkHolderMixin implements ChunkHolderExtension {
                     target = "Lnet/minecraft/server/level/ChunkHolder;changedBlocksPerSection:[Lit/unimi/dsi/fastutil/shorts/ShortSet;",
                     ordinal = 1,
                     opcode = Opcodes.GETFIELD
-            ),
-            locals = LocalCapture.CAPTURE_FAILHARD
+            )
     )
-    private void injectBroadcastChanges(LevelChunk levelChunk, CallbackInfo ci, Level level, List<ServerPlayer> players, int i) {
-        ShortSet changedFluids = this.changedFluidsPerSection[i];
+    private void injectBroadcastChanges(LevelChunk levelChunk, CallbackInfo ci, @Local List<ServerPlayer> players, @Local int i) {
+        ShortSet changedFluids = this.fluidlogged$changedFluidsPerSection[i];
         if (changedFluids == null)
             return;
 
-        this.changedFluidsPerSection[i] = null;
+        this.fluidlogged$changedFluidsPerSection[i] = null;
 
         if (players.isEmpty())
             return;
@@ -87,7 +81,7 @@ public abstract class ChunkHolderMixin implements ChunkHolderExtension {
 
         if (changedFluids.size() == 1) {
             BlockPos blockPos = sectionPos.relativeToBlockPos(changedFluids.iterator().nextShort());
-            FluidState fluidState = ((LevelChunkSectionExtension) levelChunkSection).getFluidStateExact(
+            FluidState fluidState = ((LevelChunkSectionExtension) levelChunkSection).fluidlogged$getFluidStateExact(
                     blockPos.getX() & 15,
                     blockPos.getY() & 15,
                     blockPos.getZ() & 15

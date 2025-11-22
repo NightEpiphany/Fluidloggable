@@ -5,10 +5,10 @@ import net.minecraft.world.level.material.FluidState;
 
 public interface LevelChunkSectionExtension {
 
-    Short2ObjectMap<FluidState> createAndSetFluidStatesMap();
+    Short2ObjectMap<FluidState> fluidlogged$createAndSetFluidStatesMap();
 
-    Short2ObjectMap<FluidState> getFluidStates();
-    FluidState setFluidState(int x, int y, int z, FluidState fluidState);
+    Short2ObjectMap<FluidState> fluidlogged$getFluidStates();
+    FluidState fluidlogged$setFluidState(int x, int y, int z, FluidState fluidState);
 
-    FluidState getFluidStateExact(int x, int y, int z);
+    FluidState fluidlogged$getFluidStateExact(int x, int y, int z);
 }

@@ -34,7 +34,7 @@ public class RenderChunkMixin implements RenderChunkExtension {
     @Shadow @Final private LevelChunk wrapped;
     @Shadow @Final private @Nullable List<PalettedContainer<BlockState>> sections;
 
-    @Unique private List<Short2ObjectMap<FluidState>> fluidStatesSections;
+    @Unique private List<Short2ObjectMap<FluidState>> fluidlogged$fluidStatesSections;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void injectInit(LevelChunk levelChunk, CallbackInfo ci) {
@@ -42,18 +42,18 @@ public class RenderChunkMixin implements RenderChunkExtension {
             return;
 
         LevelChunkSection[] levelChunkSections = levelChunk.getSections();
-        this.fluidStatesSections = new ArrayList<>(levelChunkSections.length);
+        this.fluidlogged$fluidStatesSections = new ArrayList<>(levelChunkSections.length);
 
         for (LevelChunkSection levelChunkSection : levelChunkSections) {
-            this.fluidStatesSections.add(levelChunkSection.hasOnlyAir()
+            this.fluidlogged$fluidStatesSections.add(levelChunkSection.hasOnlyAir()
                     ? null
-                    : new Short2ObjectOpenHashMap<>(((LevelChunkSectionExtension) levelChunkSection).getFluidStates())
+                    : new Short2ObjectOpenHashMap<>(((LevelChunkSectionExtension) levelChunkSection).fluidlogged$getFluidStates())
             );
         }
     }
 
     @Override
-    public FluidState getFluidState(BlockPos blockPos) {
+    public FluidState fluidlogged$getFluidState(BlockPos blockPos) {
         int x = blockPos.getX();
         int y = blockPos.getY();
         int z = blockPos.getZ();
@@ -76,7 +76,7 @@ public class RenderChunkMixin implements RenderChunkExtension {
             if (!defaultFluidState.isEmpty())
                 return defaultFluidState;
 
-            Short2ObjectMap<FluidState> fluidStates = this.fluidStatesSections.get(sectionIndex);
+            Short2ObjectMap<FluidState> fluidStates = this.fluidlogged$fluidStatesSections.get(sectionIndex);
             if (fluidStates == null)
                 return defaultFluidState;
 

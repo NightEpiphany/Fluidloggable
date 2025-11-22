@@ -33,7 +33,7 @@ public abstract class LevelChunkMixin extends ChunkAccess implements LevelChunkE
     }
 
     @Override
-    public FluidState setFluidState(BlockPos blockPos, FluidState fluidState) {
+    public FluidState fluidlogged$setFluidState(BlockPos blockPos, FluidState fluidState) {
         int y = blockPos.getY();
 
         LevelChunkSection levelChunkSection = this.getSection(this.getSectionIndex(y));
@@ -45,7 +45,7 @@ public abstract class LevelChunkMixin extends ChunkAccess implements LevelChunkE
         int ry = y & 15;
         int rz = blockPos.getZ() & 15;
 
-        FluidState prevFluidState = ((LevelChunkSectionExtension) levelChunkSection).setFluidState(rx, ry, rz, fluidState);
+        FluidState prevFluidState = ((LevelChunkSectionExtension) levelChunkSection).fluidlogged$setFluidState(rx, ry, rz, fluidState);
         if (prevFluidState == fluidState)
             return null;
 
@@ -62,7 +62,7 @@ public abstract class LevelChunkMixin extends ChunkAccess implements LevelChunkE
         if (Fluidlogged.Internal.hasDifferentLightEmission(prevFluidState, fluidState)) {
             ProfilerFiller profilerFiller = this.level.getProfiler();
             profilerFiller.push("updateSkyLightSources");
-            this.skyLightSources.update(this, rx, ry, rz);
+            //this.skyLightSources.update(this, rx, ry, rz);
             profilerFiller.popPush("queueCheckLight");
             this.level.getChunkSource().getLightEngine().checkBlock(blockPos);
             profilerFiller.pop();

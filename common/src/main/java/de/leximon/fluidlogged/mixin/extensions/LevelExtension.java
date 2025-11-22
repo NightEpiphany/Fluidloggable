@@ -8,15 +8,15 @@ import org.jetbrains.annotations.ApiStatus;
 public interface LevelExtension {
 
     @ApiStatus.Internal
-    boolean setFluid(BlockPos blockPos, FluidState fluidState, int flags, int maxUpdateDepth);
+    boolean fluidlogged$setFluid(BlockPos blockPos, FluidState fluidState, int flags, int maxUpdateDepth);
 
     default boolean setFluid(BlockPos blockPos, FluidState fluidState, int flags) {
-        return LevelExtension.this.setFluid(blockPos, fluidState, flags, 512);
+        return LevelExtension.this.fluidlogged$setFluid(blockPos, fluidState, flags, 512);
     }
 
-    boolean setBlockAndInsertFluidIfPossible(BlockPos blockPos, BlockState blockState, int flags);
+    boolean fluidlogged$setBlockAndInsertFluidIfPossible(BlockPos blockPos, BlockState blockState, int flags);
 
-    default void sendFluidUpdated(BlockPos blockPos, int flags) { }
+    default void fluidlogged$sendFluidUpdated(BlockPos blockPos, int flags) { }
 
     @ApiStatus.Internal
     default void fluidlogged$setBlocksDirty(int x1, int y1, int z1, int x2, int y2, int z2) { }

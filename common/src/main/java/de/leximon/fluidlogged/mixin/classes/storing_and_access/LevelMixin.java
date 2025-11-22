@@ -25,7 +25,7 @@ public abstract class LevelMixin implements LevelAccessor, AutoCloseable, LevelE
     @Shadow public abstract LevelChunk getChunkAt(BlockPos blockPos);
 
     @Override
-    public boolean setFluid(BlockPos blockPos, FluidState fluidState, int flags, int maxUpdateDepth) {
+    public boolean fluidlogged$setFluid(BlockPos blockPos, FluidState fluidState, int flags, int maxUpdateDepth) {
         Level $this = (Level) (Object) this;
         
         if ((flags & Block.UPDATE_MOVE_BY_PISTON) != 0)
@@ -39,7 +39,7 @@ public abstract class LevelMixin implements LevelAccessor, AutoCloseable, LevelE
 
 
         LevelChunk levelChunk = $this.getChunkAt(blockPos);
-        FluidState prevFluidState = ((LevelChunkExtension) levelChunk).setFluidState(blockPos, fluidState);
+        FluidState prevFluidState = ((LevelChunkExtension) levelChunk).fluidlogged$setFluidState(blockPos, fluidState);
 
         if (prevFluidState == null)
             return false;
@@ -51,7 +51,7 @@ public abstract class LevelMixin implements LevelAccessor, AutoCloseable, LevelE
         if ((flags & Block.UPDATE_CLIENTS) != 0
                 && (!$this.isClientSide || (flags & Block.UPDATE_INVISIBLE) == 0)
                 && ($this.isClientSide || levelChunk.getFullStatus() != null && levelChunk.getFullStatus().isOrAfter(FullChunkStatus.BLOCK_TICKING))) {
-            this.sendFluidUpdated(blockPos, flags);
+            this.fluidlogged$sendFluidUpdated(blockPos, flags);
         }
 
         BlockState blockState = $this.getBlockState(blockPos);
@@ -78,7 +78,7 @@ public abstract class LevelMixin implements LevelAccessor, AutoCloseable, LevelE
     }
 
     @Override
-    public boolean setBlockAndInsertFluidIfPossible(BlockPos blockPos, BlockState blockState, int flags) {
+    public boolean fluidlogged$setBlockAndInsertFluidIfPossible(BlockPos blockPos, BlockState blockState, int flags) {
         FluidState fluidState = getFluidState(blockPos);
 
         boolean success = setBlock(blockPos, blockState, flags);

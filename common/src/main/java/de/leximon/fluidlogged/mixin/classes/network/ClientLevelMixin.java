@@ -30,7 +30,7 @@ public abstract class ClientLevelMixin extends Level implements ClientLevelExten
     }
 
     @Override
-    public void syncFluidState(BlockPos blockPos, FluidState fluidState) {
+    public void fluidlogged$syncFluidState(BlockPos blockPos, FluidState fluidState) {
         FluidState prevFluidState = getFluidState(blockPos);
         if (prevFluidState != fluidState)
             this.setFluid(blockPos, fluidState, Block.UPDATE_NEIGHBORS | Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
@@ -42,7 +42,7 @@ public abstract class ClientLevelMixin extends Level implements ClientLevelExten
     }
 
     @Override
-    public void sendFluidUpdated(BlockPos blockPos, int flags) {
+    public void fluidlogged$sendFluidUpdated(BlockPos blockPos, int flags) {
         // some parameters are not used by the method itself, pass null instead
         this.levelRenderer.blockChanged(null, blockPos, null, null, flags);
     }

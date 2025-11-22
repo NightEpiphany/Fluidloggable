@@ -25,7 +25,7 @@ public abstract class RenderChunkRegionMixin {
     public void getFluidState(BlockPos blockPos, CallbackInfoReturnable<FluidState> cir) {
         int x = SectionPos.blockToSectionCoord(blockPos.getX());
         int z = SectionPos.blockToSectionCoord(blockPos.getZ());
-        cir.setReturnValue(((RenderChunkExtension) getChunk(x, z)).getFluidState(blockPos));
+        cir.setReturnValue(((RenderChunkExtension) getChunk(x, z)).fluidlogged$getFluidState(blockPos));
     }
 
 }
