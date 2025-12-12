@@ -32,7 +32,7 @@ public class ClonedChunkSectionMixin implements ClonedChunkSectionExtension {
 
         Int2ReferenceOpenHashMap<FluidState> fluidData = null;
 
-        for (Short2ObjectMap.Entry<FluidState> entry : ((LevelChunkSectionExtension) section).getFluidStates().short2ObjectEntrySet()) {
+        for (Short2ObjectMap.Entry<FluidState> entry : ((LevelChunkSectionExtension) section).fluidlogged$getFluidStates().short2ObjectEntrySet()) {
             short pos = entry.getShortKey();
             FluidState fluidState = entry.getValue();
 

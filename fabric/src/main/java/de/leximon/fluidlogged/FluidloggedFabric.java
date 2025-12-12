@@ -9,7 +9,6 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.commands.synchronization.SingletonArgumentInfo;
 
-
 public class FluidloggedFabric implements ModInitializer {
 
 	@Override
