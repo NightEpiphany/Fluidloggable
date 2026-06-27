@@ -1,0 +1,30 @@
+{
+	"schemaVersion": 1,
+	"id": "fluidloggable",
+	"version": "${version}",
+	"name": "Fluidloggable",
+	"description": "Realistic Water logic. Higher version port for fluidlogged.",
+	"authors": [
+		"NightEpiphany"
+	],
+	"license": "MIT",
+	"icon": "assets/fluidloggable/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.moigferdsrte.fluidloggable.Fluidloggable"
+		],
+		"client": [
+			"com.moigferdsrte.fluidloggable.FluidloggableClient"
+		]
+	},
+	"mixins": [
+		"fluidloggable.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
