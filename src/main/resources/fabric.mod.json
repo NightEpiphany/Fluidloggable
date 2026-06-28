@@ -19,7 +19,8 @@
 		]
 	},
 	"mixins": [
-		"fluidloggable.mixins.json"
+		"fluidloggable.mixins.json",
+		"fluidloggable-sodium.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.19.3",

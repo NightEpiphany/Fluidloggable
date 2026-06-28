@@ -1,5 +1,6 @@
 package com.moigferdsrte.fluidloggable.mixin.plugin;
 
+import net.fabricmc.loader.api.FabricLoader;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
@@ -8,6 +9,8 @@ import java.util.List;
 import java.util.Set;
 
 public class FluidloggableMixinPlugin implements IMixinConfigPlugin {
+    private static final String SODIUM_COMPAT_PACKAGE = "com.moigferdsrte.fluidloggable.compat.sodium.mixin.";
+
     @Override
     public void onLoad(String mixinPackage) {
 
@@ -20,6 +23,10 @@ public class FluidloggableMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+        if (mixinClassName.startsWith(SODIUM_COMPAT_PACKAGE)) {
+            return FabricLoader.getInstance().isModLoaded("sodium");
+        }
+
         return true;
     }
 
