@@ -1,14 +1,17 @@
 package com.moigferdsrte.fluidloggable.mixin.storage;
 
+import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
 import com.moigferdsrte.fluidloggable.extension.LevelChunkExtension;
 import com.moigferdsrte.fluidloggable.extension.LevelChunkSectionExtension;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.util.profiling.Profiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
@@ -17,10 +20,15 @@ import net.minecraft.world.level.chunk.UpgradeData;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.blending.BlendingData;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.material.Fluid;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.jspecify.annotations.Nullable;
 
 @Mixin(LevelChunk.class)
@@ -82,9 +90,49 @@ public abstract class LevelChunkMixin extends ChunkAccess implements LevelChunkE
 		return previous;
 	}
 
+	@Inject(method = "setBlockState", at = @At("RETURN"))
+	private void fluidloggable$clearFluidStateWhenBlockCannotStoreIt(
+		final BlockPos pos,
+		final BlockState state,
+		final int flags,
+		final CallbackInfoReturnable<BlockState> cir
+	) {
+		BlockState oldState = cir.getReturnValue();
+		if (oldState == null) {
+			return;
+		}
+
+		if (oldState.getFluidState() != state.getFluidState()) {
+			fluidloggable$scheduleNearbyFluidTicks(this.level, pos);
+		}
+
+		if (!WaterloggableBlockSupport.canStoreWater(state)) {
+			int y = pos.getY();
+			LevelChunkSection section = this.getSection(this.getSectionIndex(y));
+			((LevelChunkSectionExtension)section).fluidloggable$setFluidState(pos.getX() & 15, y & 15, pos.getZ() & 15, Fluids.EMPTY.defaultFluidState());
+		}
+	}
+
 	@Unique
 	private static boolean fluidloggable$hasDifferentLightEmission(final FluidState previous, final FluidState current) {
 		return false;
+	}
+
+	@Unique
+	private static void fluidloggable$scheduleNearbyFluidTicks(final Level level, final BlockPos pos) {
+		fluidloggable$scheduleFluidTickAt(level, pos);
+		for (Direction direction : Direction.values()) {
+			fluidloggable$scheduleFluidTickAt(level, pos.relative(direction));
+		}
+	}
+
+	@Unique
+	private static void fluidloggable$scheduleFluidTickAt(final Level level, final BlockPos pos) {
+		FluidState fluidState = level.getFluidState(pos);
+		if (!fluidState.isEmpty()) {
+			Fluid fluid = fluidState.getType();
+			level.scheduleTick(pos, fluid, fluid.getTickDelay(level));
+		}
 	}
 
 	@Unique

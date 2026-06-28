@@ -74,7 +74,9 @@
     "placement.BlockItemMixin",
     "storage.LevelChunkMixin",
     "storage.LevelChunkSectionMixin",
-    "storage.LevelMixin"
+    "storage.LevelMixin",
+    "storage.SerializableChunkDataMixin",
+    "storage.ServerLevelMixin"
   ],
   "client": [
     "client.FluidRendererMixin",

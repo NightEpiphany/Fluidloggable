@@ -1,5 +1,6 @@
 package com.moigferdsrte.fluidloggable.mixin.flowing;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import com.moigferdsrte.fluidloggable.Fluidloggable;
 import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
 import com.moigferdsrte.fluidloggable.extension.LevelExtension;
@@ -9,6 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FlowingFluid;
@@ -19,6 +21,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -102,7 +105,7 @@ public abstract class FlowingFluidMixin {
 	) {
 		BlockState previousBlock = level.getBlockState(pos);
 		if (WaterloggableBlockSupport.canStoreWater(previousBlock) && fluidloggable$isSameWater(currentFluidState.getType())) {
-			((LevelExtension)level).fluidloggable$setFluid(pos, currentFluidState, flags);
+			((LevelExtension)level).fluidloggable$setFluid(pos, newState.getFluidState(), flags);
 			return false;
 		}
 
@@ -130,6 +133,37 @@ public abstract class FlowingFluidMixin {
 		final BlockState blockState
 	) {
 		return level.getFluidState(this.fluidloggable$lastCheckedFluidPos);
+	}
+
+	@Redirect(
+		method = "spread",
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getFluidState()Lnet/minecraft/world/level/material/FluidState;")
+	)
+	private FluidState fluidloggable$spreadUsesStoredFluid(
+		final BlockState belowState,
+		final ServerLevel level,
+		final BlockPos pos,
+		final BlockState state,
+		final FluidState fluidState
+	) {
+		return level.getFluidState(pos.below());
+	}
+
+	@Redirect(
+		method = "getSlopeDistance",
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getFluidState()Lnet/minecraft/world/level/material/FluidState;")
+	)
+	private FluidState fluidloggable$getSlopeDistanceUsesStoredFluid(
+		final BlockState testState,
+		final LevelReader level,
+		final BlockPos pos,
+		final int pass,
+		final Direction from,
+		final BlockState state,
+		@Coerce final Object context,
+		@Local(name = "testPos") final BlockPos testPos
+	) {
+		return level.getFluidState(testPos);
 	}
 
 	@Redirect(
