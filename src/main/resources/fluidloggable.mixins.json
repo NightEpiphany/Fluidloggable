@@ -6,6 +6,8 @@
   "mixins": [
     "base.AnvilBlockMixin",
     "base.AttachedStemBlockMixin",
+    "base.BambooBlockMixin",
+    "base.BambooSaplingBlockMixin",
     "base.BannerBlockMixin",
     "base.BeaconBlockMixin",
     "base.BedBlockMixin",
@@ -58,6 +60,7 @@
     "base.SpawnerBlockMixin",
     "base.StemBlockMixin",
     "base.StonecutterBlockMixin",
+    "base.StructureVoidBlockMixin",
     "base.SugarCaneBlockMixin",
     "base.SweetBerryBushBlockMixin",
     "base.TorchBlockMixin",
