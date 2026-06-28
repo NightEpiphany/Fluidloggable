@@ -41,6 +41,15 @@ public abstract class FlowingFluidMixin {
 		throw new AssertionError();
 	}
 
+	@Shadow
+	protected abstract FluidState getNewLiquid(ServerLevel level, BlockPos pos, BlockState state);
+
+	@Shadow
+	protected abstract int getSpreadDelay(Level level, BlockPos pos, FluidState oldFluidState, FluidState newFluidState);
+
+	@Shadow
+	protected abstract void spread(ServerLevel level, BlockPos pos, BlockState state, FluidState fluidState);
+
 	@Inject(method = "canMaybePassThrough", at = @At("HEAD"), cancellable = true)
 	private void fluidloggable$letWaterPassThroughWaterloggableBlocks(
 		final BlockGetter level,
@@ -84,6 +93,40 @@ public abstract class FlowingFluidMixin {
 			((LevelExtension)level).fluidloggable$setFluid(pos, target, Block.UPDATE_ALL | Fluidloggable.UPDATE_SCHEDULE_FLUID_TICK);
 			ci.cancel();
 		}
+	}
+
+	@Inject(method = "tick", at = @At("HEAD"), cancellable = true)
+	private void fluidloggable$tickStoredFluidWithoutReplacingBlock(
+		final ServerLevel level,
+		final BlockPos pos,
+		final BlockState blockState,
+		final FluidState fluidState,
+		final CallbackInfo ci
+	) {
+		BlockState currentBlockState = level.getBlockState(pos);
+		if (!WaterloggableBlockSupport.canStoreWater(currentBlockState) || !fluidloggable$isSameWater(fluidState.getType())) {
+			return;
+		}
+
+		FluidState currentFluidState = fluidState;
+		if (!fluidState.isSource()) {
+			FluidState newFluidState = this.getNewLiquid(level, pos, currentBlockState);
+			int tickDelay = this.getSpreadDelay(level, pos, fluidState, newFluidState);
+			if (newFluidState.isEmpty()) {
+				((LevelExtension)level).fluidloggable$setFluid(pos, Fluids.EMPTY.defaultFluidState(), Block.UPDATE_ALL);
+				ci.cancel();
+				return;
+			}
+
+			if (newFluidState != fluidState) {
+				currentFluidState = newFluidState;
+				((LevelExtension)level).fluidloggable$setFluid(pos, newFluidState, Block.UPDATE_ALL);
+				level.scheduleTick(pos, newFluidState.getType(), tickDelay);
+			}
+		}
+
+		this.spread(level, pos, currentBlockState, currentFluidState);
+		ci.cancel();
 	}
 
 	@Redirect(
