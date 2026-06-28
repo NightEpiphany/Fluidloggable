@@ -69,6 +69,7 @@
     "base.TwistingVinesPlantBlockMixin",
     "base.VaultBlockMixin",
     "base.VegetationBlockMixin",
+    "base.VineBlockMixin",
     "base.WallBannerBlockMixin",
     "base.WallSkullBlockMixin",
     "base.WallTorchBlockMixin",
