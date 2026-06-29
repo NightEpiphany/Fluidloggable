@@ -3,7 +3,7 @@
 	"id": "fluidloggable",
 	"version": "${version}",
 	"name": "Fluidloggable",
-	"description": "Realistic Water logic. Recreational mod for fluidlogged.",
+	"description": "Realistic Water logic.",
 	"authors": [
 		"NightEpiphany"
 	],
