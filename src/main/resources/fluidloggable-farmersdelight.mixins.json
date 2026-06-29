@@ -1,0 +1,16 @@
+{
+  "plugin": "com.moigferdsrte.fluidloggable.mixin.plugin.FluidloggableMixinPlugin",
+  "required": true,
+  "package": "com.moigferdsrte.fluidloggable.compat.farmersdelight.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "HangingTomatoBlockMixin",
+    "MushroomColonyBlockMixin",
+    "RiceBlockMixin",
+    "RicePaniclesBlockMixin",
+    "TomatoBlockMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

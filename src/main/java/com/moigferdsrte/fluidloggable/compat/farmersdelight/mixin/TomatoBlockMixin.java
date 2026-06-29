@@ -1,9 +1,7 @@
-package com.moigferdsrte.fluidloggable.mixin.base;
+package com.moigferdsrte.fluidloggable.compat.farmersdelight.mixin;
 
 import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
-import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.FlowerBedBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -11,25 +9,19 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(FlowerBedBlock.class)
-public abstract class FlowerBedBlockMixin extends Block {
-    protected FlowerBedBlockMixin(final BlockBehaviour.Properties properties) {
+@Mixin(targets = "vectorwing.farmersdelight.common.block.TomatoBlock")
+public abstract class TomatoBlockMixin extends Block {
+    protected TomatoBlockMixin(BlockBehaviour.Properties properties) {
         super(properties);
     }
 
-    @Inject(method = "<init>", at = @At("TAIL"))
+    @Inject(method = "<init>(Lnet/minecraft/world/level/block/state/BlockBehaviour$Properties;)V", at = @At("TAIL"))
     private void fluidloggable$defaultToDry(final BlockBehaviour.Properties properties, final CallbackInfo ci) {
         final var state = this.defaultBlockState();
         if (state.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
             this.registerDefaultState(state.setValue(WaterloggableBlockSupport.WATERLOGGED, false));
         }
-    }
-
-    @Inject(method = "getStateForPlacement", at = @At("RETURN"), cancellable = true)
-    private void fluidloggable$waterlogOnPlacement(final BlockPlaceContext context, final CallbackInfoReturnable<BlockState> cir) {
-        cir.setReturnValue(WaterloggableBlockSupport.withPlacementWater(cir.getReturnValue(), context));
     }
 
     @Inject(method = "createBlockStateDefinition", at = @At("TAIL"))

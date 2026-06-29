@@ -22,6 +22,10 @@ dependencies {
 	implementation("maven.modrinth:AANobbMI:wpTNXtBM")
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	implementation("net.fabricmc.fabric-api:fabric-api:${providers.gradleProperty("fabric_api_version").get()}")
+	implementation("maven.modrinth:comforts:${providers.gradleProperty("comfort_version").get()}")
+	implementation("maven.modrinth:farmers-delight-refabricated:${providers.gradleProperty("fdrf_version").get()}") {
+		exclude(group = "net.fabricmc")
+	}
 }
 
 tasks.processResources {

@@ -19,7 +19,9 @@ public final class WaterloggableBlockSupport {
 	}
 
 	public static BlockState withPlacementWater(final BlockState state, final BlockPlaceContext context) {
-		return state == null ? null : state.setValue(WATERLOGGED, context.getLevel().getFluidState(context.getClickedPos()).is(FluidTags.WATER));
+		return state == null || !state.hasProperty(WATERLOGGED)
+				? state
+				: state.setValue(WATERLOGGED, context.getLevel().getFluidState(context.getClickedPos()).is(FluidTags.WATER));
 	}
 
 	public static BlockState preserveWaterlogged(final BlockState oldState, final BlockState newState) {

@@ -37,7 +37,10 @@ public abstract class BedBlockMixin extends HorizontalDirectionalBlock implement
 
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void fluidloggable$defaultToDry(final DyeColor color, final BlockBehaviour.Properties properties, final CallbackInfo ci) {
-		this.registerDefaultState(this.defaultBlockState().setValue(WaterloggableBlockSupport.WATERLOGGED, false));
+		final var state = this.defaultBlockState();
+        if (state.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
+            this.registerDefaultState(state.setValue(WaterloggableBlockSupport.WATERLOGGED, false));
+        }
 	}
 
 	@Inject(method = "getStateForPlacement", at = @At("RETURN"), cancellable = true)
@@ -99,6 +102,13 @@ public abstract class BedBlockMixin extends HorizontalDirectionalBlock implement
 
 	@Inject(method = "createBlockStateDefinition", at = @At("TAIL"))
 	private void fluidloggable$addWaterlogged(final StateDefinition.Builder<Block, BlockState> builder, final CallbackInfo ci) {
+		if (fluidloggable$isComfortsBlock()) {
+			return;
+		}
 		builder.add(WaterloggableBlockSupport.WATERLOGGED);
+	}
+
+	private boolean fluidloggable$isComfortsBlock() {
+		return ((Object) this).getClass().getName().startsWith("com.illusivesoulworks.comforts.common.block.");
 	}
 }

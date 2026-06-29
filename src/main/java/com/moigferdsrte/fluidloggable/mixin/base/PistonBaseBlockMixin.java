@@ -29,7 +29,10 @@ public abstract class PistonBaseBlockMixin extends DirectionalBlock implements S
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void fluidloggable$defaultToDry(boolean isSticky, Properties properties, CallbackInfo ci) {
-        this.registerDefaultState(this.defaultBlockState().setValue(WaterloggableBlockSupport.WATERLOGGED, false));
+        final var state = this.defaultBlockState();
+        if (state.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
+            this.registerDefaultState(state.setValue(WaterloggableBlockSupport.WATERLOGGED, false));
+        }
     }
 
     @Inject(method = "getStateForPlacement", at = @At("RETURN"), cancellable = true)

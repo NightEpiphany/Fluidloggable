@@ -30,7 +30,10 @@ public abstract class BambooSaplingBlockMixin extends Block implements Bonemeala
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void fluidloggable$defaultToDry(final BlockBehaviour.Properties properties, final CallbackInfo ci) {
-        this.registerDefaultState(this.defaultBlockState().setValue(WaterloggableBlockSupport.WATERLOGGED, false));
+        final var state = this.defaultBlockState();
+        if (state.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
+            this.registerDefaultState(state.setValue(WaterloggableBlockSupport.WATERLOGGED, false));
+        }
     }
 
     @Override
@@ -55,7 +58,7 @@ public abstract class BambooSaplingBlockMixin extends Block implements Bonemeala
             RandomSource random,
             CallbackInfoReturnable<BlockState> cir
     ) {
-        if (state.getValue(WaterloggableBlockSupport.WATERLOGGED)) {
+        if (WaterloggableBlockSupport.isWaterlogged(state)) {
             WaterloggableBlockSupport.scheduleWaterTick(level, ticks, pos, state);
             cir.setReturnValue(
                     WaterloggableBlockSupport.preserveWaterlogged(state, super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random))

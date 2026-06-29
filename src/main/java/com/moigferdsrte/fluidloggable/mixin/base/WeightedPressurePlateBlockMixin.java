@@ -30,7 +30,10 @@ public abstract class WeightedPressurePlateBlockMixin extends BasePressurePlateB
 
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void fluidloggable$defaultToDry(final int maxWeight, final BlockSetType type, final BlockBehaviour.Properties properties, final CallbackInfo ci) {
-		this.registerDefaultState(this.defaultBlockState().setValue(WaterloggableBlockSupport.WATERLOGGED, false));
+		final var state = this.defaultBlockState();
+        if (state.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
+            this.registerDefaultState(state.setValue(WaterloggableBlockSupport.WATERLOGGED, false));
+        }
 	}
 
 	@Override

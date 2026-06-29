@@ -32,7 +32,10 @@ public abstract class WallSkullBlockMixin extends AbstractSkullBlock implements 
 
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void fluidloggable$defaultToDry(final SkullBlock.Type type, final BlockBehaviour.Properties properties, final CallbackInfo ci) {
-		this.registerDefaultState(this.defaultBlockState().setValue(WaterloggableBlockSupport.WATERLOGGED, false));
+		final var state = this.defaultBlockState();
+        if (state.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
+            this.registerDefaultState(state.setValue(WaterloggableBlockSupport.WATERLOGGED, false));
+        }
 	}
 
 	@Inject(method = "getStateForPlacement", at = @At("RETURN"), cancellable = true)

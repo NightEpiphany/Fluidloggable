@@ -21,7 +21,10 @@ public abstract class LavaCauldronBlockMixin extends AbstractCauldronBlock {
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void fluidloggable$defaultToDry(BlockBehaviour.Properties properties, CallbackInfo ci) {
-        this.registerDefaultState(this.defaultBlockState().setValue(WaterloggableBlockSupport.WATERLOGGED, false));
+        final var state = this.defaultBlockState();
+        if (state.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
+            this.registerDefaultState(state.setValue(WaterloggableBlockSupport.WATERLOGGED, false));
+        }
     }
 
     @Override

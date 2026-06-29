@@ -20,6 +20,7 @@
 	},
 	"mixins": [
 		"fluidloggable.mixins.json",
+		"fluidloggable-farmersdelight.mixins.json",
 		"fluidloggable-sodium.mixins.json"
 	],
 	"depends": {
@@ -29,6 +30,7 @@
 		"fabric-api": "*"
 	},
 	"suggests": {
+		"farmersdelight": "*",
 		"sodium": "*"
 	}
 }

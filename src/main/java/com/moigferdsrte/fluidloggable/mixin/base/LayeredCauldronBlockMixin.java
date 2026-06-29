@@ -31,7 +31,10 @@ public abstract class LayeredCauldronBlockMixin extends AbstractCauldronBlock {
             BlockBehaviour.Properties properties,
             CallbackInfo ci
     ) {
-        this.registerDefaultState(this.defaultBlockState().setValue(WaterloggableBlockSupport.WATERLOGGED, false));
+        final var state = this.defaultBlockState();
+        if (state.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
+            this.registerDefaultState(state.setValue(WaterloggableBlockSupport.WATERLOGGED, false));
+        }
     }
 
     @Inject(method = "createBlockStateDefinition", at = @At("TAIL"))

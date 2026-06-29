@@ -10,6 +10,7 @@ import java.util.Set;
 
 public class FluidloggableMixinPlugin implements IMixinConfigPlugin {
     private static final String SODIUM_COMPAT_PACKAGE = "com.moigferdsrte.fluidloggable.compat.sodium.mixin.";
+    private static final String FARMERS_DELIGHT_COMPAT_PACKAGE = "com.moigferdsrte.fluidloggable.compat.farmersdelight.mixin.";
 
     @Override
     public void onLoad(String mixinPackage) {
@@ -25,6 +26,9 @@ public class FluidloggableMixinPlugin implements IMixinConfigPlugin {
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
         if (mixinClassName.startsWith(SODIUM_COMPAT_PACKAGE)) {
             return FabricLoader.getInstance().isModLoaded("sodium");
+        }
+        if (mixinClassName.startsWith(FARMERS_DELIGHT_COMPAT_PACKAGE)) {
+            return FabricLoader.getInstance().isModLoaded("farmersdelight");
         }
 
         return true;
