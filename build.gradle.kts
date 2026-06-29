@@ -19,6 +19,8 @@ dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft("com.mojang:minecraft:${providers.gradleProperty("minecraft_version").get()}")
 	implementation("net.fabricmc:fabric-loader:${providers.gradleProperty("loader_version").get()}")
+	implementation("maven.modrinth:modmenu:${providers.gradleProperty("modmenu_version").get()}")
+	implementation("maven.modrinth:cloth-config:${providers.gradleProperty("cloth_config_version").get()}")
 	implementation("maven.modrinth:AANobbMI:wpTNXtBM")
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	implementation("net.fabricmc.fabric-api:fabric-api:${providers.gradleProperty("fabric_api_version").get()}")
