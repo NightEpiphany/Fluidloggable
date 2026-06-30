@@ -81,6 +81,7 @@
     "base.WeightedPressurePlateBlockMixin",
     "flowing.FlowingFluidMixin",
     "flowing.WaterFluidMixin",
+    "placement.BucketItemMixin",
     "placement.BlockItemMixin",
     "storage.LevelChunkMixin",
     "storage.LevelChunkSectionMixin",

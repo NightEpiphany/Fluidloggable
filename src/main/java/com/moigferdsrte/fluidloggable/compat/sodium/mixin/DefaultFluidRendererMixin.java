@@ -1,5 +1,6 @@
 package com.moigferdsrte.fluidloggable.compat.sodium.mixin;
 
+import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
@@ -26,7 +27,7 @@ public class DefaultFluidRendererMixin {
 		final BlockPos selfPos,
 		final net.minecraft.core.Direction facing
 	) {
-		return view.getFluidState(selfPos.relative(facing)).getType().isSame(fluid.getType());
+		return fluidloggable$getNeighborFluidState(view, selfPos, facing).getType().isSame(fluid.getType());
 	}
 
 	@Redirect(
@@ -40,7 +41,7 @@ public class DefaultFluidRendererMixin {
 		final net.minecraft.core.Direction facing,
 		final FluidState fluid
 	) {
-		return view.getFluidState(selfPos.relative(facing));
+		return fluidloggable$getNeighborFluidState(view, selfPos, facing);
 	}
 
 	@Redirect(
@@ -84,5 +85,18 @@ public class DefaultFluidRendererMixin {
 		final int zOffset
 	) {
 		return level.getFluidState(origin.offset(xOffset, 0, zOffset));
+	}
+
+	private static FluidState fluidloggable$getNeighborFluidState(
+		final BlockGetter view,
+		final BlockPos selfPos,
+		final net.minecraft.core.Direction facing
+	) {
+		final BlockPos neighborPos = selfPos.relative(facing);
+		final BlockState neighborState = view.getBlockState(neighborPos);
+		if (WaterloggableBlockSupport.canStoreWater(neighborState) && !WaterloggableBlockSupport.isWaterlogged(neighborState)) {
+			return neighborState.getFluidState();
+		}
+		return view.getFluidState(neighborPos);
 	}
 }

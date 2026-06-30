@@ -1,5 +1,6 @@
 package com.moigferdsrte.fluidloggable.mixin.client;
 
+import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.FluidRenderer;
 import net.minecraft.core.BlockPos;
@@ -25,7 +26,7 @@ public abstract class FluidRendererMixin {
 		final BlockState blockState,
 		final FluidState fluidState
 	) {
-		return level.getFluidState(pos.relative(Direction.DOWN));
+		return fluidloggable$getNeighborFluidState(level, pos, Direction.DOWN);
 	}
 
 	@Redirect(
@@ -40,7 +41,7 @@ public abstract class FluidRendererMixin {
 		final BlockState blockState,
 		final FluidState fluidState
 	) {
-		return level.getFluidState(pos.relative(Direction.UP));
+		return fluidloggable$getNeighborFluidState(level, pos, Direction.UP);
 	}
 
 	@Redirect(
@@ -55,7 +56,7 @@ public abstract class FluidRendererMixin {
 		final BlockState blockState,
 		final FluidState fluidState
 	) {
-		return level.getFluidState(pos.relative(Direction.NORTH));
+		return fluidloggable$getNeighborFluidState(level, pos, Direction.NORTH);
 	}
 
 	@Redirect(
@@ -70,7 +71,7 @@ public abstract class FluidRendererMixin {
 		final BlockState blockState,
 		final FluidState fluidState
 	) {
-		return level.getFluidState(pos.relative(Direction.SOUTH));
+		return fluidloggable$getNeighborFluidState(level, pos, Direction.SOUTH);
 	}
 
 	@Redirect(
@@ -85,7 +86,7 @@ public abstract class FluidRendererMixin {
 		final BlockState blockState,
 		final FluidState fluidState
 	) {
-		return level.getFluidState(pos.relative(Direction.WEST));
+		return fluidloggable$getNeighborFluidState(level, pos, Direction.WEST);
 	}
 
 	@Redirect(
@@ -100,7 +101,7 @@ public abstract class FluidRendererMixin {
 		final BlockState blockState,
 		final FluidState fluidState
 	) {
-		return level.getFluidState(pos.relative(Direction.EAST));
+		return fluidloggable$getNeighborFluidState(level, pos, Direction.EAST);
 	}
 
 	@Redirect(
@@ -124,5 +125,18 @@ public abstract class FluidRendererMixin {
 		final FluidState fluidState
 	) {
 		return level.getFluidState(pos.above());
+	}
+
+	private static FluidState fluidloggable$getNeighborFluidState(
+		final BlockAndTintGetter level,
+		final BlockPos pos,
+		final Direction direction
+	) {
+		final BlockPos neighborPos = pos.relative(direction);
+		final BlockState neighborState = level.getBlockState(neighborPos);
+		if (WaterloggableBlockSupport.canStoreWater(neighborState) && !WaterloggableBlockSupport.isWaterlogged(neighborState)) {
+			return neighborState.getFluidState();
+		}
+		return level.getFluidState(neighborPos);
 	}
 }

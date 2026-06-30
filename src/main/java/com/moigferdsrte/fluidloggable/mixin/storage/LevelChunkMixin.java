@@ -110,6 +110,10 @@ public abstract class LevelChunkMixin extends ChunkAccess implements LevelChunkE
 			int y = pos.getY();
 			LevelChunkSection section = this.getSection(this.getSectionIndex(y));
 			((LevelChunkSectionExtension)section).fluidloggable$setFluidState(pos.getX() & 15, y & 15, pos.getZ() & 15, Fluids.EMPTY.defaultFluidState());
+		} else if (!WaterloggableBlockSupport.isWaterlogged(state)) {
+			int y = pos.getY();
+			LevelChunkSection section = this.getSection(this.getSectionIndex(y));
+			((LevelChunkSectionExtension)section).fluidloggable$setFluidState(pos.getX() & 15, y & 15, pos.getZ() & 15, Fluids.EMPTY.defaultFluidState());
 		}
 	}
 
