@@ -24,6 +24,7 @@ import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -108,7 +109,8 @@ public abstract class BedBlockMixin extends HorizontalDirectionalBlock implement
 		builder.add(WaterloggableBlockSupport.WATERLOGGED);
 	}
 
-	private boolean fluidloggable$isComfortsBlock() {
+	@Unique
+    private boolean fluidloggable$isComfortsBlock() {
 		return ((Object) this).getClass().getName().startsWith("com.illusivesoulworks.comforts.common.block.");
 	}
 }

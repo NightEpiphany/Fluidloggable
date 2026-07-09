@@ -40,6 +40,13 @@ public final class WaterloggableBlockSupport {
 		return state.hasProperty(WATERLOGGED);
 	}
 
+	public static boolean hasNonWaterloggedStateChange(final BlockState oldState, final BlockState newState) {
+		if (!oldState.hasProperty(WATERLOGGED) || !newState.hasProperty(WATERLOGGED)) {
+			return oldState != newState;
+		}
+		return newState.setValue(WATERLOGGED, oldState.getValue(WATERLOGGED)) != oldState;
+	}
+
 	public static void scheduleWaterTick(final LevelReader level, final ScheduledTickAccess ticks, final BlockPos pos, final BlockState state) {
 		if (isWaterlogged(state)) {
 			ticks.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));

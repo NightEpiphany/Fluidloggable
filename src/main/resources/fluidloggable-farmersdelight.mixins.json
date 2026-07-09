@@ -8,7 +8,14 @@
     "MushroomColonyBlockMixin",
     "RiceBlockMixin",
     "RicePaniclesBlockMixin",
-    "TomatoBlockMixin"
+    "TomatoBlockMixin",
+    "base.CanvasRugBlockMixin",
+    "base.FeastBlockMixin",
+    "base.PieBlockMixin",
+    "base.RiceRollMedleyBlockMixin",
+    "base.RotatedFeastBlockMixin",
+    "base.TatamiHalfMatBlockMixin",
+    "base.TatamiMatBlockMixin"
   ],
   "injectors": {
     "defaultRequire": 1

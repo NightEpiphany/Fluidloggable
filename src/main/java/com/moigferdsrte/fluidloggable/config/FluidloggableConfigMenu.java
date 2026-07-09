@@ -21,7 +21,16 @@ public final class FluidloggableConfigMenu implements ModMenuApi {
                 .setParentScreen(parent)
                 .setTitle(Component.literal("Fluidloggable"));
         final ConfigEntryBuilder entryBuilder = builder.entryBuilder();
+        final ConfigCategory general = builder.getOrCreateCategory(Component.literal("General"));
         final ConfigCategory blocks = builder.getOrCreateCategory(Component.literal("Block Mixins"));
+
+        general.addEntry(entryBuilder
+                .startBooleanToggle(Component.literal("Client-only Compatibility Mode"), FluidloggableConfig.isClientOnlyCompatibilityModeEnabled())
+                .setDefaultValue(FluidloggableConfig.defaultClientOnlyCompatibilityMode())
+                .setSaveConsumer(FluidloggableConfig::setClientOnlyCompatibilityModeEnabled)
+                .setTooltip(Component.literal("Requires restart. Disables Fluidloggable mixins on physical clients so vanilla servers use the vanilla block state palette."))
+                .requireRestart()
+                .build());
 
         for (String mixin : FluidloggableConfig.BLOCK_MIXINS) {
             blocks.addEntry(entryBuilder

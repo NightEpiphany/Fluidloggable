@@ -17,6 +17,9 @@
 		"client": [
 			"com.moigferdsrte.fluidloggable.FluidloggableClient"
 		],
+		"server": [
+			"com.moigferdsrte.fluidloggable.FluidloggableServer"
+		],
 		"modmenu": [
 			"com.moigferdsrte.fluidloggable.config.FluidloggableConfigMenu"
 		]

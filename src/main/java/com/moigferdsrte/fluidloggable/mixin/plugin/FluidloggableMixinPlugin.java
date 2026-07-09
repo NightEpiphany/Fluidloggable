@@ -1,6 +1,7 @@
 package com.moigferdsrte.fluidloggable.mixin.plugin;
 
 import com.moigferdsrte.fluidloggable.config.FluidloggableConfig;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class FluidloggableMixinPlugin implements IMixinConfigPlugin {
+    private static final String MOD_PACKAGE = "com.moigferdsrte.fluidloggable.";
     private static final String BASE_MIXIN_PACKAGE = "com.moigferdsrte.fluidloggable.mixin.base.";
     private static final String SODIUM_COMPAT_PACKAGE = "com.moigferdsrte.fluidloggable.compat.sodium.mixin.";
     private static final String FARMERS_DELIGHT_COMPAT_PACKAGE = "com.moigferdsrte.fluidloggable.compat.farmersdelight.mixin.";
@@ -34,6 +36,10 @@ public class FluidloggableMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+        if (isClientOnlyCompatibilityMode() && mixinClassName.startsWith(MOD_PACKAGE)) {
+            return false;
+        }
+
         if (mixinClassName.startsWith(BASE_MIXIN_PACKAGE)) {
             return FluidloggableConfig.isBlockMixinEnabled(simpleName(mixinClassName));
         }
@@ -70,5 +76,10 @@ public class FluidloggableMixinPlugin implements IMixinConfigPlugin {
 
     private static String simpleName(final String className) {
         return className.substring(className.lastIndexOf('.') + 1);
+    }
+
+    private static boolean isClientOnlyCompatibilityMode() {
+        return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT
+                && FluidloggableConfig.isClientOnlyCompatibilityModeEnabled();
     }
 }

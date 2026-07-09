@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.moigferdsrte.fluidloggable.Fluidloggable;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.IOException;
@@ -98,9 +99,12 @@ public final class FluidloggableConfig {
     );
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final String CLIENT_ONLY_COMPATIBILITY_MODE_KEY = "clientOnlyCompatibilityMode";
     private static final String BLOCK_MIXINS_KEY = "blockMixins";
     private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("fluidloggable.json");
     private static final Map<String, Boolean> blockMixins = new LinkedHashMap<>();
+    // Support for vanilla server.
+    private static boolean clientOnlyCompatibilityMode;
     private static boolean loaded;
 
     private FluidloggableConfig() {
@@ -136,6 +140,20 @@ public final class FluidloggableConfig {
         }
     }
 
+    public static synchronized boolean isClientOnlyCompatibilityModeEnabled() {
+        load();
+        return clientOnlyCompatibilityMode;
+    }
+
+    public static synchronized void setClientOnlyCompatibilityModeEnabled(final boolean enabled) {
+        load();
+        clientOnlyCompatibilityMode = enabled;
+    }
+
+    public static boolean defaultClientOnlyCompatibilityMode() {
+        return FabricLoader.getInstance().getEnvironmentType() != EnvType.CLIENT;
+    }
+
     public static synchronized boolean isBlockMixinEnabled(final String mixinSimpleName) {
         load();
         return blockMixins.getOrDefault(mixinSimpleName, true);
@@ -169,6 +187,7 @@ public final class FluidloggableConfig {
     }
 
     private static void resetToDefaults() {
+        clientOnlyCompatibilityMode = defaultClientOnlyCompatibilityMode();
         blockMixins.clear();
         for (String mixin : BLOCK_MIXINS) {
             blockMixins.put(mixin, true);
@@ -183,6 +202,11 @@ public final class FluidloggableConfig {
             }
 
             final JsonObject object = root.getAsJsonObject();
+            final JsonElement clientOnlyCompatibilityModeElement = object.get(CLIENT_ONLY_COMPATIBILITY_MODE_KEY);
+            if (clientOnlyCompatibilityModeElement != null && clientOnlyCompatibilityModeElement.isJsonPrimitive()) {
+                clientOnlyCompatibilityMode = clientOnlyCompatibilityModeElement.getAsBoolean();
+            }
+
             final JsonElement blockMixinsElement = object.get(BLOCK_MIXINS_KEY);
             if (blockMixinsElement == null || !blockMixinsElement.isJsonObject()) {
                 return;
@@ -200,6 +224,7 @@ public final class FluidloggableConfig {
 
     private static JsonObject toJson() {
         final JsonObject root = new JsonObject();
+        root.addProperty(CLIENT_ONLY_COMPATIBILITY_MODE_KEY, clientOnlyCompatibilityMode);
         final JsonObject blockMixinObject = new JsonObject();
         for (Map.Entry<String, Boolean> entry : blockMixins.entrySet()) {
             blockMixinObject.addProperty(entry.getKey(), entry.getValue());

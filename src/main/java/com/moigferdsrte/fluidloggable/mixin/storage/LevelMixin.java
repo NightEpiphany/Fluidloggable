@@ -24,9 +24,14 @@ import net.minecraft.world.level.material.FluidState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 @Mixin(Level.class)
 public abstract class LevelMixin implements LevelAccessor, AutoCloseable, LevelExtension {
+	@Unique
+	private boolean fluidloggable$syncingWaterloggedState;
+
 	@Shadow
 	public abstract LevelChunk getChunkAt(BlockPos pos);
 
@@ -58,7 +63,12 @@ public abstract class LevelMixin implements LevelAccessor, AutoCloseable, LevelE
 		BlockState blockState = level.getBlockState(pos);
 		BlockState syncedBlockState = fluidloggable$withSyncedWaterlogged(blockState, fluidState);
 		if (syncedBlockState != blockState) {
-			level.setBlock(pos, syncedBlockState, flags & ~Fluidloggable.UPDATE_SCHEDULE_FLUID_TICK, maxUpdateDepth);
+			this.fluidloggable$syncingWaterloggedState = true;
+			try {
+				level.setBlock(pos, syncedBlockState, flags & ~Fluidloggable.UPDATE_SCHEDULE_FLUID_TICK, maxUpdateDepth);
+			} finally {
+				this.fluidloggable$syncingWaterloggedState = false;
+			}
 			blockState = level.getBlockState(pos);
 		}
 
@@ -95,6 +105,43 @@ public abstract class LevelMixin implements LevelAccessor, AutoCloseable, LevelE
 		}
 
 		return true;
+	}
+
+	@ModifyVariable(
+		method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z",
+		at = @At("HEAD"),
+		argsOnly = true,
+		ordinal = 0
+	)
+	private BlockState fluidloggable$preserveFluidWhenUpdatingWaterloggableBlock(
+		final BlockState newState,
+		final BlockPos pos
+	) {
+		if (this.fluidloggable$syncingWaterloggedState) {
+			return newState;
+		}
+
+		Level level = (Level)(Object)this;
+		if (!level.isInValidBounds(pos) || !level.isClientSide() && level.isDebug()) {
+			return newState;
+		}
+
+		BlockState oldState = level.getBlockState(pos);
+		FluidState oldFluid = level.getFluidState(pos);
+		if (!oldFluid.is(FluidTags.WATER) || !WaterloggableBlockSupport.isWaterlogged(oldState)) {
+			return newState;
+		}
+
+		if (WaterloggableBlockSupport.canStoreWater(newState)
+			&& WaterloggableBlockSupport.hasNonWaterloggedStateChange(oldState, newState)) {
+			return newState.setValue(WaterloggableBlockSupport.WATERLOGGED, true);
+		}
+
+		if (newState.isAir()) {
+			return oldFluid.createLegacyBlock();
+		}
+
+		return newState;
 	}
 
 	@Override
