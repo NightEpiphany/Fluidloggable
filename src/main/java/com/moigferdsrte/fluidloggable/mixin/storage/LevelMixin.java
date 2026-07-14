@@ -1,7 +1,7 @@
 package com.moigferdsrte.fluidloggable.mixin.storage;
 
 import com.moigferdsrte.fluidloggable.Fluidloggable;
-import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
 import com.moigferdsrte.fluidloggable.extension.LevelChunkExtension;
 import com.moigferdsrte.fluidloggable.extension.LevelExtension;
 import com.moigferdsrte.fluidloggable.network.ClientboundFluidUpdatePacket;
@@ -12,7 +12,6 @@ import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.FullChunkStatus;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -30,7 +29,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin(Level.class)
 public abstract class LevelMixin implements LevelAccessor, AutoCloseable, LevelExtension {
 	@Unique
-	private boolean fluidloggable$syncingWaterloggedState;
+	private boolean fluidloggable$syncingFluidloggedState;
 
 	@Shadow
 	public abstract LevelChunk getChunkAt(BlockPos pos);
@@ -53,28 +52,29 @@ public abstract class LevelMixin implements LevelAccessor, AutoCloseable, LevelE
 
 		LevelChunk chunk = level.getChunkAt(pos);
 		FluidState previous = ((LevelChunkExtension)chunk).fluidloggable$setFluidState(pos, fluidState);
-		if (previous == null) {
-			if ((flags & Fluidloggable.UPDATE_SCHEDULE_FLUID_TICK) != 0 && !fluidState.isEmpty()) {
-				fluidloggable$scheduleFluidTickAt(level, pos);
-			}
-			return false;
-		}
+		final boolean fluidChanged = previous != null;
 
 		BlockState blockState = level.getBlockState(pos);
-		BlockState syncedBlockState = fluidloggable$withSyncedWaterlogged(blockState, fluidState);
-		if (syncedBlockState != blockState) {
-			this.fluidloggable$syncingWaterloggedState = true;
+		BlockState syncedBlockState = FluidloggedBlockStateSupport.withFluid(blockState, fluidState);
+		final boolean blockStateChanged = syncedBlockState != blockState;
+		if (blockStateChanged) {
+			this.fluidloggable$syncingFluidloggedState = true;
 			try {
 				level.setBlock(pos, syncedBlockState, flags & ~Fluidloggable.UPDATE_SCHEDULE_FLUID_TICK, maxUpdateDepth);
 			} finally {
-				this.fluidloggable$syncingWaterloggedState = false;
+				this.fluidloggable$syncingFluidloggedState = false;
 			}
 			blockState = level.getBlockState(pos);
 		}
 
-		if (previous != fluidState) {
-			this.setBlocksDirty(pos, blockState, blockState);
+		if (!fluidChanged) {
+			if ((flags & Fluidloggable.UPDATE_SCHEDULE_FLUID_TICK) != 0 && !fluidState.isEmpty()) {
+				fluidloggable$scheduleFluidTickAt(level, pos);
+			}
+			return blockStateChanged;
 		}
+
+		this.setBlocksDirty(pos, blockState, blockState);
 
 		if ((flags & Block.UPDATE_CLIENTS) != 0
 			&& (!level.isClientSide() || (flags & Block.UPDATE_INVISIBLE) == 0)
@@ -93,9 +93,7 @@ public abstract class LevelMixin implements LevelAccessor, AutoCloseable, LevelE
 			fluidloggable$scheduleFluidTickAt(level, pos);
 		}
 
-		if (previous != fluidState) {
-			fluidloggable$scheduleNeighbouringFluidTicks(level, pos);
-		}
+		fluidloggable$scheduleNeighbouringFluidTicks(level, pos);
 
 		if ((flags & Block.UPDATE_KNOWN_SHAPE) == 0 && maxUpdateDepth > 0) {
 			int neighbourUpdateFlags = flags & -34;
@@ -117,7 +115,7 @@ public abstract class LevelMixin implements LevelAccessor, AutoCloseable, LevelE
 		final BlockState newState,
 		final BlockPos pos
 	) {
-		if (this.fluidloggable$syncingWaterloggedState) {
+		if (this.fluidloggable$syncingFluidloggedState) {
 			return newState;
 		}
 
@@ -128,13 +126,14 @@ public abstract class LevelMixin implements LevelAccessor, AutoCloseable, LevelE
 
 		BlockState oldState = level.getBlockState(pos);
 		FluidState oldFluid = level.getFluidState(pos);
-		if (!oldFluid.is(FluidTags.WATER) || !WaterloggableBlockSupport.isWaterlogged(oldState)) {
+		if (oldFluid.isEmpty()
+				|| !FluidloggedBlockStateSupport.containsFluid(oldState, oldFluid.getType())) {
 			return newState;
 		}
 
-		if (WaterloggableBlockSupport.canStoreWater(newState)
-			&& WaterloggableBlockSupport.hasNonWaterloggedStateChange(oldState, newState)) {
-			return newState.setValue(WaterloggableBlockSupport.WATERLOGGED, true);
+		if (FluidloggedBlockStateSupport.canStoreFluid(newState, oldFluid.getType())
+				&& FluidloggedBlockStateSupport.hasNonFluidloggedStateChange(oldState, newState)) {
+			return FluidloggedBlockStateSupport.preserveFluidlogged(oldState, newState);
 		}
 
 		if (newState.isAir()) {
@@ -149,7 +148,9 @@ public abstract class LevelMixin implements LevelAccessor, AutoCloseable, LevelE
 		Level level = (Level)(Object)this;
 		FluidState fluidState = level.getFluidState(pos);
 		boolean success = level.setBlock(pos, state, flags);
-		if (success && !fluidState.isEmpty() && WaterloggableBlockSupport.canStoreWater(level.getBlockState(pos))) {
+		if (success
+				&& !fluidState.isEmpty()
+				&& FluidloggedBlockStateSupport.canStoreFluid(level.getBlockState(pos), fluidState.getType())) {
 			this.fluidloggable$setFluid(pos, fluidState, flags | Fluidloggable.UPDATE_SCHEDULE_FLUID_TICK);
 		}
 		return success;
@@ -167,17 +168,6 @@ public abstract class LevelMixin implements LevelAccessor, AutoCloseable, LevelE
 		} else {
 			this.sendBlockUpdated(pos, level.getBlockState(pos), level.getBlockState(pos), flags);
 		}
-	}
-
-	@Unique
-    private static BlockState fluidloggable$withSyncedWaterlogged(final BlockState blockState, final FluidState fluidState) {
-		if (!blockState.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
-			return blockState;
-		}
-		boolean shouldBeWaterlogged = !fluidState.isEmpty() && fluidState.is(FluidTags.WATER);
-		return blockState.getValue(WaterloggableBlockSupport.WATERLOGGED) == shouldBeWaterlogged
-			? blockState
-			: blockState.setValue(WaterloggableBlockSupport.WATERLOGGED, shouldBeWaterlogged);
 	}
 
 	@Unique

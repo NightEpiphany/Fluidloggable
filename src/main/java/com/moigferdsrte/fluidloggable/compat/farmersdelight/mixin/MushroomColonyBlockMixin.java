@@ -1,5 +1,7 @@
 package com.moigferdsrte.fluidloggable.compat.farmersdelight.mixin;
 
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
+import com.moigferdsrte.fluidloggable.block.LavaloggableBlockSupport;
 import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
 import net.minecraft.core.Holder;
 import net.minecraft.world.item.Item;
@@ -22,14 +24,11 @@ public abstract class MushroomColonyBlockMixin extends VegetationBlock {
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void fluidloggable$defaultToDry(final Holder<Item> mushroomType, final BlockBehaviour.Properties properties, final CallbackInfo ci) {
-        final BlockState state = this.defaultBlockState();
-        if (state.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
-            this.registerDefaultState(state.setValue(WaterloggableBlockSupport.WATERLOGGED, false));
-        }
+        this.registerDefaultState(FluidloggedBlockStateSupport.defaultToDry(this.defaultBlockState()));
     }
 
     @Inject(method = "createBlockStateDefinition", at = @At("TAIL"))
     private void fluidloggable$addWaterlogged(StateDefinition.@NonNull Builder<Block, BlockState> builder, CallbackInfo ci) {
-        builder.add(WaterloggableBlockSupport.WATERLOGGED);
+        builder.add(WaterloggableBlockSupport.WATERLOGGED, LavaloggableBlockSupport.LAVALOGGED);
     }
 }

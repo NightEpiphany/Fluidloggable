@@ -1,5 +1,7 @@
 package com.moigferdsrte.fluidloggable.mixin.base;
 
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
+import com.moigferdsrte.fluidloggable.block.LavaloggableBlockSupport;
 import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.DiodeBlock;
@@ -22,11 +24,11 @@ public abstract class DiodeBlockMixin extends HorizontalDirectionalBlock impleme
 
 	@Inject(method = "getStateForPlacement", at = @At("RETURN"), cancellable = true)
 	private void fluidloggable$waterlogOnPlacement(final BlockPlaceContext context, final CallbackInfoReturnable<BlockState> cir) {
-		cir.setReturnValue(WaterloggableBlockSupport.withPlacementWater(cir.getReturnValue(), context));
+		cir.setReturnValue(FluidloggedBlockStateSupport.withPlacementFluid(cir.getReturnValue(), context));
 	}
 
 	@Override
 	protected @NonNull FluidState getFluidState(final @NonNull BlockState state) {
-		return WaterloggableBlockSupport.getFluidState(state, super.getFluidState(state));
+		return FluidloggedBlockStateSupport.getFluidState(state, super.getFluidState(state));
 	}
 }

@@ -1,5 +1,7 @@
 package com.moigferdsrte.fluidloggable.mixin.base;
 
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
+import com.moigferdsrte.fluidloggable.block.LavaloggableBlockSupport;
 import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
 import net.minecraft.core.cauldron.CauldronInteractions;
 import net.minecraft.world.level.block.AbstractCauldronBlock;
@@ -21,15 +23,12 @@ public abstract class EmptyCauldronBlockMixin extends AbstractCauldronBlock {
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void fluidloggable$defaultToDry(BlockBehaviour.Properties properties, CallbackInfo ci) {
-        final var state = this.defaultBlockState();
-        if (state.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
-            this.registerDefaultState(state.setValue(WaterloggableBlockSupport.WATERLOGGED, false));
-        }
+        this.registerDefaultState(FluidloggedBlockStateSupport.defaultToDry(this.defaultBlockState()));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(WaterloggableBlockSupport.WATERLOGGED);
+        builder.add(WaterloggableBlockSupport.WATERLOGGED, LavaloggableBlockSupport.LAVALOGGED);
     }
 }

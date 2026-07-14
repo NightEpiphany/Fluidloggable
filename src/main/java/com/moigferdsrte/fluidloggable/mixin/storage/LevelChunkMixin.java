@@ -1,6 +1,6 @@
 package com.moigferdsrte.fluidloggable.mixin.storage;
 
-import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
 import com.moigferdsrte.fluidloggable.extension.LevelChunkExtension;
 import com.moigferdsrte.fluidloggable.extension.LevelChunkSectionExtension;
 import net.minecraft.core.BlockPos;
@@ -106,13 +106,16 @@ public abstract class LevelChunkMixin extends ChunkAccess implements LevelChunkE
 			fluidloggable$scheduleNearbyFluidTicks(this.level, pos);
 		}
 
-		if (!WaterloggableBlockSupport.canStoreWater(state)) {
+		final FluidState storedFluid = this.level.getFluidState(pos);
+		if (!storedFluid.isEmpty()
+				&& !FluidloggedBlockStateSupport.canStoreFluid(state, storedFluid.getType())) {
 			int y = pos.getY();
 			LevelChunkSection section = this.getSection(this.getSectionIndex(y));
 			((LevelChunkSectionExtension)section).fluidloggable$setFluidState(pos.getX() & 15, y & 15, pos.getZ() & 15, Fluids.EMPTY.defaultFluidState());
-		} else if (WaterloggableBlockSupport.isWaterlogged(oldState)
-				&& !WaterloggableBlockSupport.isWaterlogged(state)
-				&& !WaterloggableBlockSupport.hasNonWaterloggedStateChange(oldState, state)) {
+		} else if (!storedFluid.isEmpty()
+				&& FluidloggedBlockStateSupport.containsFluid(oldState, storedFluid.getType())
+				&& !FluidloggedBlockStateSupport.containsFluid(state, storedFluid.getType())
+				&& !FluidloggedBlockStateSupport.hasNonFluidloggedStateChange(oldState, state)) {
 			int y = pos.getY();
 			LevelChunkSection section = this.getSection(this.getSectionIndex(y));
 			((LevelChunkSectionExtension)section).fluidloggable$setFluidState(pos.getX() & 15, y & 15, pos.getZ() & 15, Fluids.EMPTY.defaultFluidState());

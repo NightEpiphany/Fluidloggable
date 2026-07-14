@@ -1,6 +1,9 @@
 package com.moigferdsrte.fluidloggable.mixin.base;
 
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
+import com.moigferdsrte.fluidloggable.block.LavaloggableBlockSupport;
 import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
+import com.moigferdsrte.fluidloggable.extension.LevelExtension;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
@@ -20,7 +23,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -38,15 +40,12 @@ public abstract class BedBlockMixin extends HorizontalDirectionalBlock implement
 
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void fluidloggable$defaultToDry(final DyeColor color, final BlockBehaviour.Properties properties, final CallbackInfo ci) {
-		final var state = this.defaultBlockState();
-        if (state.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
-            this.registerDefaultState(state.setValue(WaterloggableBlockSupport.WATERLOGGED, false));
-        }
+		this.registerDefaultState(FluidloggedBlockStateSupport.defaultToDry(this.defaultBlockState()));
 	}
 
 	@Inject(method = "getStateForPlacement", at = @At("RETURN"), cancellable = true)
 	private void fluidloggable$waterlogFoot(final BlockPlaceContext context, final CallbackInfoReturnable<@Nullable BlockState> cir) {
-		cir.setReturnValue(WaterloggableBlockSupport.withPlacementWater(cir.getReturnValue(), context));
+		cir.setReturnValue(FluidloggedBlockStateSupport.withPlacementFluid(cir.getReturnValue(), context));
 	}
 
 	@Inject(method = "setPlacedBy", at = @At("HEAD"), cancellable = true)
@@ -59,16 +58,20 @@ public abstract class BedBlockMixin extends HorizontalDirectionalBlock implement
 		final CallbackInfo ci
 	) {
 		BlockPos headPos = pos.relative(state.getValue(BedBlock.FACING));
-		level.setBlockAndUpdate(
-			headPos,
-			state.setValue(BedBlock.PART, BedPart.HEAD).setValue(WaterloggableBlockSupport.WATERLOGGED, level.getFluidState(headPos).is(Fluids.WATER))
+		((LevelExtension) level).fluidloggable$setBlockAndInsertFluidIfPossible(
+				headPos,
+				FluidloggedBlockStateSupport.withFluid(
+				state.setValue(BedBlock.PART, BedPart.HEAD),
+				level.getFluidState(headPos)
+				),
+				Block.UPDATE_ALL
 		);
 		ci.cancel();
 	}
 
 	@Override
 	protected @NonNull FluidState getFluidState(final @NonNull BlockState state) {
-		return WaterloggableBlockSupport.getFluidState(state, super.getFluidState(state));
+		return FluidloggedBlockStateSupport.getFluidState(state, super.getFluidState(state));
 	}
 
 	@Inject(method = "updateShape", at = @At("HEAD"))
@@ -83,7 +86,7 @@ public abstract class BedBlockMixin extends HorizontalDirectionalBlock implement
 		final RandomSource random,
 		final CallbackInfoReturnable<BlockState> cir
 	) {
-		WaterloggableBlockSupport.scheduleWaterTick(level, ticks, pos, state);
+		FluidloggedBlockStateSupport.scheduleFluidTick(level, ticks, pos, state);
 	}
 
 	@Inject(method = "updateShape", at = @At("RETURN"), cancellable = true)
@@ -98,7 +101,7 @@ public abstract class BedBlockMixin extends HorizontalDirectionalBlock implement
 		final RandomSource random,
 		final CallbackInfoReturnable<BlockState> cir
 	) {
-		cir.setReturnValue(WaterloggableBlockSupport.preserveWaterlogged(state, cir.getReturnValue()));
+		cir.setReturnValue(FluidloggedBlockStateSupport.preserveFluidlogged(state, cir.getReturnValue()));
 	}
 
 	@Inject(method = "createBlockStateDefinition", at = @At("TAIL"))
@@ -106,7 +109,7 @@ public abstract class BedBlockMixin extends HorizontalDirectionalBlock implement
 		if (fluidloggable$isComfortsBlock()) {
 			return;
 		}
-		builder.add(WaterloggableBlockSupport.WATERLOGGED);
+		builder.add(WaterloggableBlockSupport.WATERLOGGED, LavaloggableBlockSupport.LAVALOGGED);
 	}
 
 	@Unique

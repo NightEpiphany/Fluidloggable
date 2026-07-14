@@ -1,5 +1,7 @@
 package com.moigferdsrte.fluidloggable.mixin.base;
 
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
+import com.moigferdsrte.fluidloggable.block.LavaloggableBlockSupport;
 import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,20 +33,17 @@ public abstract class WallBannerBlockMixin extends AbstractBannerBlock implement
 
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void fluidloggable$defaultToDry(final DyeColor color, final BlockBehaviour.Properties properties, final CallbackInfo ci) {
-		final var state = this.defaultBlockState();
-        if (state.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
-            this.registerDefaultState(state.setValue(WaterloggableBlockSupport.WATERLOGGED, false));
-        }
+		this.registerDefaultState(FluidloggedBlockStateSupport.defaultToDry(this.defaultBlockState()));
 	}
 
 	@Inject(method = "getStateForPlacement", at = @At("RETURN"), cancellable = true)
 	private void fluidloggable$waterlogOnPlacement(final BlockPlaceContext context, final CallbackInfoReturnable<BlockState> cir) {
-		cir.setReturnValue(WaterloggableBlockSupport.withPlacementWater(cir.getReturnValue(), context));
+		cir.setReturnValue(FluidloggedBlockStateSupport.withPlacementFluid(cir.getReturnValue(), context));
 	}
 
 	@Override
 	protected @NonNull FluidState getFluidState(final @NonNull BlockState state) {
-		return WaterloggableBlockSupport.getFluidState(state, super.getFluidState(state));
+		return FluidloggedBlockStateSupport.getFluidState(state, super.getFluidState(state));
 	}
 
 	@Inject(method = "updateShape", at = @At("HEAD"))
@@ -59,7 +58,7 @@ public abstract class WallBannerBlockMixin extends AbstractBannerBlock implement
 		final RandomSource random,
 		final CallbackInfoReturnable<BlockState> cir
 	) {
-		WaterloggableBlockSupport.scheduleWaterTick(level, ticks, pos, state);
+		FluidloggedBlockStateSupport.scheduleFluidTick(level, ticks, pos, state);
 	}
 
 	@Inject(method = "updateShape", at = @At("RETURN"), cancellable = true)
@@ -74,11 +73,11 @@ public abstract class WallBannerBlockMixin extends AbstractBannerBlock implement
 		final RandomSource random,
 		final CallbackInfoReturnable<BlockState> cir
 	) {
-		cir.setReturnValue(WaterloggableBlockSupport.preserveWaterlogged(state, cir.getReturnValue()));
+		cir.setReturnValue(FluidloggedBlockStateSupport.preserveFluidlogged(state, cir.getReturnValue()));
 	}
 
 	@Inject(method = "createBlockStateDefinition", at = @At("TAIL"))
 	private void fluidloggable$addWaterlogged(final StateDefinition.Builder<Block, BlockState> builder, final CallbackInfo ci) {
-		builder.add(WaterloggableBlockSupport.WATERLOGGED);
+		builder.add(WaterloggableBlockSupport.WATERLOGGED, LavaloggableBlockSupport.LAVALOGGED);
 	}
 }

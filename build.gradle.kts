@@ -28,6 +28,21 @@ dependencies {
 	implementation("maven.modrinth:farmers-delight-refabricated:${providers.gradleProperty("fdrf_version").get()}") {
 		exclude(group = "net.fabricmc")
 	}
+	testImplementation(platform("org.junit:junit-bom:5.13.4"))
+	testImplementation("org.junit.jupiter:junit-jupiter")
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+	useJUnitPlatform()
+}
+
+fabricApi {
+	configureTests {
+		createSourceSet.set(true)
+		modId.set("fluidloggable-gametest")
+		enableClientGameTests.set(false)
+	}
 }
 
 tasks.processResources {

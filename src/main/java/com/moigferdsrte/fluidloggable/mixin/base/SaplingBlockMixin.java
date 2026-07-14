@@ -1,5 +1,7 @@
 package com.moigferdsrte.fluidloggable.mixin.base;
 
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
+import com.moigferdsrte.fluidloggable.block.LavaloggableBlockSupport;
 import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SaplingBlock;
@@ -20,14 +22,11 @@ public abstract class SaplingBlockMixin extends Block {
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void fluidloggable$defaultToDry(final TreeGrower treeGrower, final BlockBehaviour.Properties properties, final CallbackInfo ci) {
-        final var state = this.defaultBlockState();
-        if (state.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
-            this.registerDefaultState(state.setValue(WaterloggableBlockSupport.WATERLOGGED, false));
-        }
+        this.registerDefaultState(FluidloggedBlockStateSupport.defaultToDry(this.defaultBlockState()));
     }
 
     @Inject(method = "createBlockStateDefinition", at = @At("TAIL"))
     private void fluidloggable$addWaterlogged(final StateDefinition.Builder<Block, BlockState> builder, final CallbackInfo ci) {
-        builder.add(WaterloggableBlockSupport.WATERLOGGED);
+        builder.add(WaterloggableBlockSupport.WATERLOGGED, LavaloggableBlockSupport.LAVALOGGED);
     }
 }

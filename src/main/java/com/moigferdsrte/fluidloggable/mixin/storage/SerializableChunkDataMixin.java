@@ -1,6 +1,7 @@
 package com.moigferdsrte.fluidloggable.mixin.storage;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
 import com.moigferdsrte.fluidloggable.extension.LevelChunkSectionExtension;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import java.util.List;
@@ -89,8 +90,26 @@ public class SerializableChunkDataMixin {
 		for (int i = 0; i + 1 < serialized.length; i += 2) {
 			FluidState fluidState = Fluid.FLUID_STATE_REGISTRY.byId(serialized[i + 1]);
 			if (fluidState != null && !fluidState.isEmpty()) {
-				fluidStates.put((short)serialized[i], fluidState);
+				final short packedPos = (short) serialized[i];
+				fluidStates.put(packedPos, fluidState);
+				fluidloggable$syncStoredFluidProperty(section, packedPos, fluidState);
 			}
+		}
+	}
+
+	@Unique
+	private static void fluidloggable$syncStoredFluidProperty(
+			final LevelChunkSection section,
+			final short packedPos,
+			final FluidState fluidState
+	) {
+		final int x = packedPos >> 8 & 15;
+		final int y = packedPos >> 4 & 15;
+		final int z = packedPos & 15;
+		final BlockState state = section.getBlockState(x, y, z);
+		final BlockState synced = FluidloggedBlockStateSupport.withFluid(state, fluidState);
+		if (synced != state) {
+			section.setBlockState(x, y, z, synced);
 		}
 	}
 

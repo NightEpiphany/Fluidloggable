@@ -1,5 +1,6 @@
 package com.moigferdsrte.fluidloggable.mixin.storage;
 
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
 import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
 import com.moigferdsrte.fluidloggable.extension.LevelChunkSectionExtension;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
@@ -130,7 +131,21 @@ public class LevelChunkSectionMixin implements LevelChunkSectionExtension {
 			FluidState fluidState = Fluid.FLUID_STATE_REGISTRY.byId(buffer.readInt());
 			if (fluidState != null && !fluidState.isEmpty()) {
 				this.fluidloggable$fluidStates.put(key, fluidState);
+				this.fluidloggable$syncStoredFluidProperty(key, fluidState);
 			}
+		}
+	}
+
+	@Unique
+	private void fluidloggable$syncStoredFluidProperty(final short packedPos, final FluidState fluidState) {
+		final int x = packedPos >> 8 & 15;
+		final int y = packedPos >> 4 & 15;
+		final int z = packedPos & 15;
+		final LevelChunkSection section = (LevelChunkSection) (Object) this;
+		final BlockState state = section.getBlockState(x, y, z);
+		final BlockState synced = FluidloggedBlockStateSupport.withFluid(state, fluidState);
+		if (synced != state) {
+			section.setBlockState(x, y, z, synced);
 		}
 	}
 

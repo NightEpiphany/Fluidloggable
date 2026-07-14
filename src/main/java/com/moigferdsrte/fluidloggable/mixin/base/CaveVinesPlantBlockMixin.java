@@ -1,5 +1,7 @@
 package com.moigferdsrte.fluidloggable.mixin.base;
 
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
+import com.moigferdsrte.fluidloggable.block.LavaloggableBlockSupport;
 import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -28,20 +30,17 @@ public abstract class CaveVinesPlantBlockMixin extends GrowingPlantBodyBlock imp
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void fluidloggable$defaultToDry(final BlockBehaviour.Properties properties, final CallbackInfo ci) {
-        final var state = this.defaultBlockState();
-        if (state.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
-            this.registerDefaultState(state.setValue(WaterloggableBlockSupport.WATERLOGGED, false));
-        }
+        this.registerDefaultState(FluidloggedBlockStateSupport.defaultToDry(this.defaultBlockState()));
     }
 
     @Override
     public @Nullable BlockState getStateForPlacement(@NonNull BlockPlaceContext context) {
-        return WaterloggableBlockSupport.withPlacementWater(super.getStateForPlacement(context), context);
+        return FluidloggedBlockStateSupport.withPlacementFluid(super.getStateForPlacement(context), context);
     }
 
     @Override
     protected @NonNull FluidState getFluidState(final @NonNull BlockState state) {
-        return WaterloggableBlockSupport.getFluidState(state, super.getFluidState(state));
+        return FluidloggedBlockStateSupport.getFluidState(state, super.getFluidState(state));
     }
 
     @Override
@@ -55,12 +54,12 @@ public abstract class CaveVinesPlantBlockMixin extends GrowingPlantBodyBlock imp
             final @NonNull BlockState neighbourState,
             final @NonNull RandomSource random
     ) {
-        WaterloggableBlockSupport.scheduleWaterTick(level, ticks, pos, state);
-        return WaterloggableBlockSupport.preserveWaterlogged(state, super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random));
+        FluidloggedBlockStateSupport.scheduleFluidTick(level, ticks, pos, state);
+        return FluidloggedBlockStateSupport.preserveFluidlogged(state, super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random));
     }
 
     @Inject(method = "createBlockStateDefinition", at = @At("TAIL"))
     private void fluidloggable$addWaterlogged(final StateDefinition.Builder<Block, BlockState> builder, final CallbackInfo ci) {
-        builder.add(WaterloggableBlockSupport.WATERLOGGED);
+        builder.add(WaterloggableBlockSupport.WATERLOGGED, LavaloggableBlockSupport.LAVALOGGED);
     }
 }

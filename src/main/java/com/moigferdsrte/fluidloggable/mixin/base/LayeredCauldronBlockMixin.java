@@ -1,5 +1,7 @@
 package com.moigferdsrte.fluidloggable.mixin.base;
 
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
+import com.moigferdsrte.fluidloggable.block.LavaloggableBlockSupport;
 import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.cauldron.CauldronInteraction;
@@ -13,6 +15,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.Fluid;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -31,31 +34,22 @@ public abstract class LayeredCauldronBlockMixin extends AbstractCauldronBlock {
             BlockBehaviour.Properties properties,
             CallbackInfo ci
     ) {
-        final var state = this.defaultBlockState();
-        if (state.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
-            this.registerDefaultState(state.setValue(WaterloggableBlockSupport.WATERLOGGED, false));
-        }
+        this.registerDefaultState(FluidloggedBlockStateSupport.defaultToDry(this.defaultBlockState()));
     }
 
     @Inject(method = "createBlockStateDefinition", at = @At("TAIL"))
     private void fluidloggable$addWaterlogged(StateDefinition.Builder<Block, BlockState> builder, CallbackInfo ci) {
-        builder.add(WaterloggableBlockSupport.WATERLOGGED);
+        builder.add(WaterloggableBlockSupport.WATERLOGGED, LavaloggableBlockSupport.LAVALOGGED);
     }
 
     @Inject(method = "receiveStalactiteDrip", at = @At("RETURN"), cancellable = true)
     private void fluidloggable$preserveWaterloggedAfterDrip(BlockState state, Level level, BlockPos pos, Fluid fluid, CallbackInfo ci) {
-        BlockState current = level.getBlockState(pos);
-        if (WaterloggableBlockSupport.isWaterlogged(state) && current.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
-            level.setBlockAndUpdate(pos, current.setValue(WaterloggableBlockSupport.WATERLOGGED, true));
-        }
+		fluidloggable$preserveFluidlogged(state, level, pos);
     }
 
     @Inject(method = "lowerFillLevel", at = @At("RETURN"))
     private static void fluidloggable$preserveWaterloggedAfterLowering(BlockState state, Level level, BlockPos pos, CallbackInfo ci) {
-        BlockState current = level.getBlockState(pos);
-        if (WaterloggableBlockSupport.isWaterlogged(state) && current.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
-            level.setBlockAndUpdate(pos, current.setValue(WaterloggableBlockSupport.WATERLOGGED, true));
-        }
+		fluidloggable$preserveFluidlogged(state, level, pos);
     }
 
     @Inject(method = "handlePrecipitation", at = @At("RETURN"))
@@ -66,9 +60,15 @@ public abstract class LayeredCauldronBlockMixin extends AbstractCauldronBlock {
             Biome.Precipitation precipitation,
             CallbackInfo ci
     ) {
-        BlockState current = level.getBlockState(pos);
-        if (WaterloggableBlockSupport.isWaterlogged(state) && current.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
-            level.setBlockAndUpdate(pos, current.setValue(WaterloggableBlockSupport.WATERLOGGED, true));
-        }
+		fluidloggable$preserveFluidlogged(state, level, pos);
     }
+
+	@Unique
+	private static void fluidloggable$preserveFluidlogged(final BlockState state, final Level level, final BlockPos pos) {
+		final BlockState current = level.getBlockState(pos);
+		final BlockState preserved = FluidloggedBlockStateSupport.preserveFluidlogged(state, current);
+		if (preserved != current) {
+			level.setBlockAndUpdate(pos, preserved);
+		}
+	}
 }

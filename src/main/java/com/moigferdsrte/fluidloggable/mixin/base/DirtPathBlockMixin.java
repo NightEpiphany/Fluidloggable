@@ -1,5 +1,7 @@
 package com.moigferdsrte.fluidloggable.mixin.base;
 
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
+import com.moigferdsrte.fluidloggable.block.LavaloggableBlockSupport;
 import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -29,20 +31,17 @@ public abstract class DirtPathBlockMixin extends Block implements SimpleWaterlog
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void fluidloggable$defaultToDry(final BlockBehaviour.Properties properties, final CallbackInfo ci) {
-        final var state = this.defaultBlockState();
-        if (state.hasProperty(WaterloggableBlockSupport.WATERLOGGED)) {
-            this.registerDefaultState(state.setValue(WaterloggableBlockSupport.WATERLOGGED, false));
-        }
+        this.registerDefaultState(FluidloggedBlockStateSupport.defaultToDry(this.defaultBlockState()));
     }
 
     @Inject(method = "getStateForPlacement", at = @At("RETURN"), cancellable = true)
     private void fluidloggable$waterlogOnPlacement(final BlockPlaceContext context, final CallbackInfoReturnable<BlockState> cir) {
-        cir.setReturnValue(WaterloggableBlockSupport.withPlacementWater(cir.getReturnValue(), context));
+        cir.setReturnValue(FluidloggedBlockStateSupport.withPlacementFluid(cir.getReturnValue(), context));
     }
 
     @Override
     protected @NonNull FluidState getFluidState(final @NonNull BlockState state) {
-        return WaterloggableBlockSupport.getFluidState(state, super.getFluidState(state));
+        return FluidloggedBlockStateSupport.getFluidState(state, super.getFluidState(state));
     }
 
     @Inject(method = "updateShape", at = @At("HEAD"), cancellable = true)
@@ -57,10 +56,10 @@ public abstract class DirtPathBlockMixin extends Block implements SimpleWaterlog
             RandomSource random,
             CallbackInfoReturnable<BlockState> cir
     ) {
-        if (WaterloggableBlockSupport.isWaterlogged(state)) {
-            WaterloggableBlockSupport.scheduleWaterTick(level, ticks, pos, state);
+        if (WaterloggableBlockSupport.isWaterlogged(state) || LavaloggableBlockSupport.isLavalogged(state)) {
+            FluidloggedBlockStateSupport.scheduleFluidTick(level, ticks, pos, state);
             cir.setReturnValue(
-                    WaterloggableBlockSupport.preserveWaterlogged(state, super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random))
+                    FluidloggedBlockStateSupport.preserveFluidlogged(state, super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random))
             );
         }
     }
@@ -68,6 +67,6 @@ public abstract class DirtPathBlockMixin extends Block implements SimpleWaterlog
     @Override
     protected void createBlockStateDefinition(StateDefinition.@NonNull Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(WaterloggableBlockSupport.WATERLOGGED);
+        builder.add(WaterloggableBlockSupport.WATERLOGGED, LavaloggableBlockSupport.LAVALOGGED);
     }
 }

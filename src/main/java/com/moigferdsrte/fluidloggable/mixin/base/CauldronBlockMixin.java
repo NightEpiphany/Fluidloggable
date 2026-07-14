@@ -1,5 +1,7 @@
 package com.moigferdsrte.fluidloggable.mixin.base;
 
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
+import com.moigferdsrte.fluidloggable.block.LavaloggableBlockSupport;
 import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -24,12 +26,12 @@ public abstract class CauldronBlockMixin extends Block implements SimpleWaterlog
 
     @Override
     public @Nullable BlockState getStateForPlacement(@NonNull BlockPlaceContext context) {
-        return WaterloggableBlockSupport.withPlacementWater(super.getStateForPlacement(context), context);
+        return FluidloggedBlockStateSupport.withPlacementFluid(super.getStateForPlacement(context), context);
     }
 
     @Override
     protected @NonNull FluidState getFluidState(final @NonNull BlockState state) {
-        return WaterloggableBlockSupport.getFluidState(state, super.getFluidState(state));
+        return FluidloggedBlockStateSupport.getFluidState(state, super.getFluidState(state));
     }
 
     @Override
@@ -43,7 +45,7 @@ public abstract class CauldronBlockMixin extends Block implements SimpleWaterlog
             final @NonNull BlockState neighbourState,
             final @NonNull RandomSource random
     ) {
-        WaterloggableBlockSupport.scheduleWaterTick(level, ticks, pos, state);
-        return WaterloggableBlockSupport.preserveWaterlogged(state, super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random));
+        FluidloggedBlockStateSupport.scheduleFluidTick(level, ticks, pos, state);
+        return FluidloggedBlockStateSupport.preserveFluidlogged(state, super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random));
     }
 }

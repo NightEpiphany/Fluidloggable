@@ -1,7 +1,8 @@
 package com.moigferdsrte.fluidloggable.mixin.placement;
 
 import com.moigferdsrte.fluidloggable.Fluidloggable;
-import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
+import com.moigferdsrte.fluidloggable.block.LavaloggableBlockSupport;
 import com.moigferdsrte.fluidloggable.extension.LevelExtension;
 import net.minecraft.advancements.triggers.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
@@ -63,17 +64,17 @@ public abstract class BucketItemMixin extends Item {
     protected abstract void playEmptySound(LivingEntity user, LevelAccessor level, BlockPos pos);
 
     @Inject(method = "use", at = @At("HEAD"), cancellable = true)
-    private void fluidloggable$waterlogExistingBlock(
+    private void fluidloggable$fillExistingBlock(
             final Level level,
             final Player player,
             final InteractionHand hand,
             final CallbackInfoReturnable<InteractionResult> cir
     ) {
-        if (this.content == Fluids.EMPTY && fluidloggable$tryPickupStoredWater(level, player, hand, cir)) {
+        if (this.content == Fluids.EMPTY && fluidloggable$tryPickupStoredFluid(level, player, hand, cir)) {
             return;
         }
 
-        if (this.content != Fluids.WATER) {
+        if (this.content != Fluids.WATER && this.content != Fluids.LAVA) {
             return;
         }
 
@@ -92,18 +93,29 @@ public abstract class BucketItemMixin extends Item {
         }
 
         final BlockState state = level.getBlockState(pos);
-        if (state.getBlock() instanceof LiquidBlockContainer
-                || !WaterloggableBlockSupport.canStoreWater(state)
-                || WaterloggableBlockSupport.isWaterlogged(state)) {
+		if (!FluidloggedBlockStateSupport.canStoreFluid(state, this.content)) {
             return;
         }
+		if (this.content == Fluids.WATER && LavaloggableBlockSupport.isLavalogged(state)) {
+			cir.setReturnValue(InteractionResult.FAIL);
+			return;
+		}
+		if (this.content == Fluids.WATER && state.getBlock() instanceof LiquidBlockContainer) {
+			return;
+		}
+		if (!FluidloggedBlockStateSupport.canPlaceFluid(state, this.content)) {
+			return;
+		}
 
-        if (level.environmentAttributes().getValue(EnvironmentAttributes.WATER_EVAPORATES, pos)) {
+		if (this.content == Fluids.WATER
+				&& level.environmentAttributes().getValue(EnvironmentAttributes.WATER_EVAPORATES, pos)) {
             fluidloggable$evaporateWater(level, player, pos);
         } else {
             ((LevelExtension) level).fluidloggable$setFluid(
                     pos,
-                    Fluids.WATER.getSource(false),
+					this.content == Fluids.LAVA
+							? Fluids.LAVA.getSource(false)
+							: Fluids.WATER.getSource(false),
                     Block.UPDATE_ALL | Fluidloggable.UPDATE_SCHEDULE_FLUID_TICK
             );
             this.playEmptySound(player, level, pos);
@@ -124,7 +136,7 @@ public abstract class BucketItemMixin extends Item {
     }
 
     @Unique
-    private boolean fluidloggable$tryPickupStoredWater(
+    private boolean fluidloggable$tryPickupStoredFluid(
             final Level level,
             final Player player,
             final InteractionHand hand,
@@ -145,12 +157,10 @@ public abstract class BucketItemMixin extends Item {
         }
 
         final BlockState state = level.getBlockState(pos);
-        if (!WaterloggableBlockSupport.canStoreWater(state)) {
-            return false;
-        }
-
         final FluidState fluidState = level.getFluidState(pos);
-        if (!fluidState.is(FluidTags.WATER)) {
+		final Fluid storedFluid = fluidState.getType();
+		if ((!fluidState.is(FluidTags.WATER) && !fluidState.is(FluidTags.LAVA))
+				|| !FluidloggedBlockStateSupport.containsFluid(state, storedFluid)) {
             return false;
         }
 
@@ -161,22 +171,24 @@ public abstract class BucketItemMixin extends Item {
 
         ((LevelExtension) level).fluidloggable$setFluid(pos, Fluids.EMPTY.defaultFluidState(), Block.UPDATE_ALL);
         final BlockState currentState = level.getBlockState(pos);
-        if (WaterloggableBlockSupport.isWaterlogged(currentState)) {
-            final BlockState dryState = currentState.setValue(WaterloggableBlockSupport.WATERLOGGED, false);
-            level.setBlock(pos, dryState, Block.UPDATE_ALL);
-            if (!dryState.canSurvive(level, pos)) {
+		final BlockState dryState = FluidloggedBlockStateSupport.defaultToDry(currentState);
+		if (dryState != currentState) {
+			level.setBlock(pos, dryState, Block.UPDATE_ALL);
+		}
+		if (!dryState.canSurvive(level, pos)) {
                 level.destroyBlock(pos, true);
-            }
         }
 
         player.awardStat(Stats.ITEM_USED.get((BucketItem) (Object) this));
-        Fluids.WATER.getPickupSound().ifPresent(sound -> player.playSound(sound, 1.0F, 1.0F));
+		storedFluid.getPickupSound().ifPresent(sound -> player.playSound(sound, 1.0F, 1.0F));
         level.gameEvent(player, GameEvent.FLUID_PICKUP, pos);
 
-        final ItemStack waterBucket = new ItemStack(Items.WATER_BUCKET);
-        final ItemStack result = ItemUtils.createFilledResult(stack, player, waterBucket);
+		final ItemStack filledBucket = new ItemStack(
+				fluidState.is(FluidTags.LAVA) ? Items.LAVA_BUCKET : Items.WATER_BUCKET
+		);
+		final ItemStack result = ItemUtils.createFilledResult(stack, player, filledBucket);
         if (!level.isClientSide()) {
-            CriteriaTriggers.FILLED_BUCKET.trigger((ServerPlayer) player, waterBucket);
+			CriteriaTriggers.FILLED_BUCKET.trigger((ServerPlayer) player, filledBucket);
         }
 
         cir.setReturnValue(InteractionResult.SUCCESS.heldItemTransformedTo(result));
