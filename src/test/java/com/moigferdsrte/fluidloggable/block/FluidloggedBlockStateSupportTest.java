@@ -7,6 +7,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import org.junit.jupiter.api.Test;
 
@@ -100,6 +101,47 @@ class FluidloggedBlockStateSupportTest {
 		assertFalse(FluidloggedBlockStateSupport.containsFluid(state(true, true), Fluids.WATER));
 		assertTrue(FluidloggedBlockStateSupport.containsFluid(state(true, false), Fluids.FLOWING_WATER));
 		assertTrue(FluidloggedBlockStateSupport.canStoreFluid(state(false, false), Fluids.FLOWING_LAVA));
+	}
+
+	@Test
+	void recognizesOnlySupportedVanillaFluidFamilies() {
+		assertTrue(FluidloggedBlockStateSupport.isSupportedFluid(Fluids.WATER));
+		assertTrue(FluidloggedBlockStateSupport.isSupportedFluid(Fluids.FLOWING_WATER));
+		assertTrue(FluidloggedBlockStateSupport.isSupportedFluid(Fluids.LAVA));
+		assertTrue(FluidloggedBlockStateSupport.isSupportedFluid(Fluids.FLOWING_LAVA));
+		assertFalse(FluidloggedBlockStateSupport.isSupportedFluid(Fluids.EMPTY));
+	}
+
+	@Test
+	void selectsExactStoredFluidForRenderingOnlyWhenStateContainsIt() {
+		final FluidState flowingLava = Fluids.FLOWING_LAVA.getFlowing(3, false);
+		final FluidState flowingWater = Fluids.FLOWING_WATER.getFlowing(5, true);
+		final FluidState empty = Fluids.EMPTY.defaultFluidState();
+
+		assertSame(
+				flowingLava,
+				FluidloggedBlockStateSupport.selectFluidForRendering(state(false, true), flowingLava, empty)
+		);
+		assertSame(
+				flowingWater,
+				FluidloggedBlockStateSupport.selectFluidForRendering(state(true, false), flowingWater, empty)
+		);
+		assertSame(
+				empty,
+				FluidloggedBlockStateSupport.selectFluidForRendering(state(false, false), flowingLava, empty)
+		);
+	}
+
+	@Test
+	void detectsOnlyChangesAcrossTheLavaLightBoundary() {
+		final FluidState empty = Fluids.EMPTY.defaultFluidState();
+		final FluidState sourceLava = Fluids.LAVA.getSource(false);
+		final FluidState flowingLava = Fluids.FLOWING_LAVA.getFlowing(3, false);
+
+		assertTrue(FluidloggedBlockStateSupport.hasDifferentLightEmission(empty, sourceLava));
+		assertTrue(FluidloggedBlockStateSupport.hasDifferentLightEmission(sourceLava, empty));
+		assertFalse(FluidloggedBlockStateSupport.hasDifferentLightEmission(sourceLava, flowingLava));
+		assertFalse(FluidloggedBlockStateSupport.hasDifferentLightEmission(empty, Fluids.WATER.getSource(false)));
 	}
 
 	@Test

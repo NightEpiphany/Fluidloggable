@@ -5,6 +5,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.material.LavaFluid;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -17,6 +18,14 @@ public abstract class BlockStateBaseMixin {
 		final BlockState state = (BlockState) (Object) this;
 		if (LavaloggableBlockSupport.isLavalogged(state)) {
 			cir.setReturnValue(Fluids.LAVA.getSource(false));
+		}
+	}
+
+	@Inject(method = "getLightEmission", at = @At("HEAD"), cancellable = true)
+	private void fluidloggable$lavaEmitsLight(final CallbackInfoReturnable<Integer> cir) {
+		final BlockState state = (BlockState) (Object) this;
+		if (LavaloggableBlockSupport.isLavalogged(state)) {
+			cir.setReturnValue(LavaFluid.LIGHT_EMISSION);
 		}
 	}
 }

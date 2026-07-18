@@ -6,10 +6,13 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.moigferdsrte.fluidloggable.block.BlockDefaultStateGameTest"
+			"com.moigferdsrte.fluidloggable.block.FluidloggedGameTestBootstrap"
 		],
 		"fabric-gametest": [
-			"com.moigferdsrte.fluidloggable.block.BlockDefaultStateGameTest"
+			"com.moigferdsrte.fluidloggable.block.BlockDefaultStateGameTest",
+			"com.moigferdsrte.fluidloggable.block.BucketPlacementGameTest",
+			"com.moigferdsrte.fluidloggable.block.LavaloggedFlowGameTest",
+			"com.moigferdsrte.fluidloggable.block.TrapdoorFlowGameTest"
 		]
 	},
 	"depends": {

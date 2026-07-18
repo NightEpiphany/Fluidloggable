@@ -14,7 +14,7 @@ public abstract class DoubleHighBlockItemMixin {
 	@Inject(method = "placeBlock", at = @At("HEAD"))
 	private void fluidloggable$captureUpperFluid(
 			final BlockPlaceContext context,
-			final BlockState state,
+			final BlockState placementState,
 			final CallbackInfoReturnable<Boolean> cir
 	) {
 		DoubleHeightFluidPlacementSupport.captureUpperFluid(context);
@@ -23,7 +23,7 @@ public abstract class DoubleHighBlockItemMixin {
 	@Inject(method = "placeBlock", at = @At("RETURN"))
 	private void fluidloggable$discardUpperFluidAfterFailedPlacement(
 			final BlockPlaceContext context,
-			final BlockState state,
+			final BlockState placementState,
 			final CallbackInfoReturnable<Boolean> cir
 	) {
 		if (!cir.getReturnValue()) {

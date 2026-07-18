@@ -124,7 +124,7 @@ public abstract class LevelChunkMixin extends ChunkAccess implements LevelChunkE
 
 	@Unique
 	private static boolean fluidloggable$hasDifferentLightEmission(final FluidState previous, final FluidState current) {
-		return false;
+		return FluidloggedBlockStateSupport.hasDifferentLightEmission(previous, current);
 	}
 
 	@Unique

@@ -10,8 +10,8 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.MossyCarpetBlock;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
-import net.minecraft.world.level.block.SnowLayerBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -23,15 +23,20 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(SnowLayerBlock.class)
-public abstract class SnowBlockMixin extends Block implements SimpleWaterloggedBlock {
-    public SnowBlockMixin(Properties properties) {
+@Mixin(MossyCarpetBlock.class)
+public abstract class MossyCarpetBlockMixin extends Block implements SimpleWaterloggedBlock {
+    public MossyCarpetBlockMixin(Properties properties) {
         super(properties);
     }
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void fluidloggable$defaultToDry(final BlockBehaviour.Properties properties, final CallbackInfo ci) {
         this.registerDefaultState(FluidloggedBlockStateSupport.defaultToDry(this.defaultBlockState()));
+    }
+
+    @Inject(method = "createBlockStateDefinition", at = @At("TAIL"))
+    private void fluidloggable$addWaterlogged(final StateDefinition.Builder<Block, BlockState> builder, final CallbackInfo ci) {
+        builder.add(WaterloggableBlockSupport.WATERLOGGED, LavaloggableBlockSupport.LAVALOGGED);
     }
 
     @Inject(method = "getStateForPlacement", at = @At("RETURN"), cancellable = true)
@@ -62,10 +67,5 @@ public abstract class SnowBlockMixin extends Block implements SimpleWaterloggedB
                     FluidloggedBlockStateSupport.preserveFluidlogged(state, super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random))
             );
         }
-    }
-
-    @Inject(method = "createBlockStateDefinition", at = @At("TAIL"))
-    private void fluidloggable$addWaterlogged(final StateDefinition.Builder<Block, BlockState> builder, final CallbackInfo ci) {
-        builder.add(WaterloggableBlockSupport.WATERLOGGED, LavaloggableBlockSupport.LAVALOGGED);
     }
 }

@@ -84,6 +84,24 @@ public final class FluidloggedBlockStateSupport {
 				: isWater(fluid) && WaterloggableBlockSupport.canStoreWater(state);
 	}
 
+	public static boolean isSupportedFluid(final Fluid fluid) {
+		return isWater(fluid) || isLava(fluid);
+	}
+
+	public static FluidState selectFluidForRendering(
+			final BlockState state,
+			final FluidState storedFluid,
+			final FluidState fallback
+	) {
+		return !storedFluid.isEmpty() && containsFluid(state, storedFluid.getType())
+				? storedFluid
+				: fallback;
+	}
+
+	public static boolean hasDifferentLightEmission(final FluidState previous, final FluidState current) {
+		return isLava(previous.getType()) != isLava(current.getType());
+	}
+
 	public static boolean containsFluid(final BlockState state, final Fluid fluid) {
 		if (isLava(fluid)) {
 			return LavaloggableBlockSupport.isLavalogged(state);

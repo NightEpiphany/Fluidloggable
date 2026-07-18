@@ -68,20 +68,20 @@ public class LevelChunkSectionMixin implements LevelChunkSectionExtension {
 	}
 
 	@Inject(method = "getFluidState", at = @At("HEAD"), cancellable = true)
-	private void fluidloggable$getStoredFluidState(final int x, final int y, final int z, final CallbackInfoReturnable<FluidState> cir) {
-		FluidState storedFluid = this.fluidloggable$fluidStates.get(fluidloggable$packLocalPos(x, y, z));
+	private void fluidloggable$getStoredFluidState(final int sectionX, final int sectionY, final int sectionZ, final CallbackInfoReturnable<FluidState> cir) {
+		FluidState storedFluid = this.fluidloggable$fluidStates.get(fluidloggable$packLocalPos(sectionX, sectionY, sectionZ));
 		if (!storedFluid.isEmpty()) {
 			cir.setReturnValue(storedFluid);
 		}
 	}
 
 	@Inject(method = "getFluidState", at = @At("RETURN"), cancellable = true)
-	private void fluidloggable$preferVanillaWaterloggedState(final int x, final int y, final int z, final CallbackInfoReturnable<FluidState> cir) {
+	private void fluidloggable$preferVanillaWaterloggedState(final int sectionX, final int sectionY, final int sectionZ, final CallbackInfoReturnable<FluidState> cir) {
 		if (!cir.getReturnValue().isEmpty()) {
 			return;
 		}
 
-		BlockState blockState = ((LevelChunkSection)(Object)this).getBlockState(x, y, z);
+		BlockState blockState = ((LevelChunkSection)(Object)this).getBlockState(sectionX, sectionY, sectionZ);
 		if (WaterloggableBlockSupport.isWaterlogged(blockState)) {
 			cir.setReturnValue(Fluids.WATER.getSource(false));
 		}

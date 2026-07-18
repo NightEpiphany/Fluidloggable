@@ -1,6 +1,6 @@
 package com.moigferdsrte.fluidloggable.compat.sodium.mixin;
 
-import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
@@ -94,9 +94,10 @@ public class DefaultFluidRendererMixin {
 	) {
 		final BlockPos neighborPos = selfPos.relative(facing);
 		final BlockState neighborState = view.getBlockState(neighborPos);
-		if (WaterloggableBlockSupport.canStoreWater(neighborState) && !WaterloggableBlockSupport.isWaterlogged(neighborState)) {
-			return neighborState.getFluidState();
-		}
-		return view.getFluidState(neighborPos);
+		return FluidloggedBlockStateSupport.selectFluidForRendering(
+				neighborState,
+				view.getFluidState(neighborPos),
+				neighborState.getFluidState()
+		);
 	}
 }

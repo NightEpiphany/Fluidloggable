@@ -19,17 +19,30 @@ public final class FluidloggableConfigMenu implements ModMenuApi {
 
         final ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
-                .setTitle(Component.literal("Fluidloggable"));
+                .setTitle(Component.translatable("fluidloggable.config.title"));
         final ConfigEntryBuilder entryBuilder = builder.entryBuilder();
-        final ConfigCategory general = builder.getOrCreateCategory(Component.literal("General"));
-        final ConfigCategory blocks = builder.getOrCreateCategory(Component.literal("Block Mixins"));
+        final ConfigCategory general = builder.getOrCreateCategory(Component.translatable("fluidloggable.config.category.general"));
+        final ConfigCategory blocks = builder.getOrCreateCategory(Component.translatable("fluidloggable.config.category.block_mixins"));
 
         general.addEntry(entryBuilder
-                .startBooleanToggle(Component.literal("Client-only Compatibility Mode"), FluidloggableConfig.isClientOnlyCompatibilityModeEnabled())
+                .startBooleanToggle(
+                        Component.translatable("fluidloggable.config.client_only_compatibility_mode"),
+                        FluidloggableConfig.isClientOnlyCompatibilityModeEnabled()
+                )
                 .setDefaultValue(FluidloggableConfig.defaultClientOnlyCompatibilityMode())
                 .setSaveConsumer(FluidloggableConfig::setClientOnlyCompatibilityModeEnabled)
-                .setTooltip(Component.literal("Requires restart. Disables Fluidloggable mixins on physical clients so vanilla servers use the vanilla block state palette."))
+                .setTooltip(Component.translatable("fluidloggable.config.client_only_compatibility_mode.tooltip"))
                 .requireRestart()
+                .build());
+
+        general.addEntry(entryBuilder
+                .startBooleanToggle(
+                        Component.translatable("fluidloggable.config.trapdoor_fluid_blocking"),
+                        FluidloggableConfig.isTrapdoorFluidBlockingEnabled()
+                )
+                .setDefaultValue(FluidloggableConfig.defaultTrapdoorFluidBlocking())
+                .setSaveConsumer(FluidloggableConfig::setTrapdoorFluidBlockingEnabled)
+                .setTooltip(Component.translatable("fluidloggable.config.trapdoor_fluid_blocking.tooltip"))
                 .build());
 
         for (String mixin : FluidloggableConfig.BLOCK_MIXINS) {
@@ -37,7 +50,7 @@ public final class FluidloggableConfigMenu implements ModMenuApi {
                     .startBooleanToggle(Component.literal(FluidloggableConfig.displayName(mixin)), FluidloggableConfig.isBlockMixinEnabled(mixin))
                     .setDefaultValue(true)
                     .setSaveConsumer(enabled -> FluidloggableConfig.setBlockMixinEnabled(mixin, enabled))
-                    .setTooltip(Component.literal("Requires restart."))
+                    .setTooltip(Component.translatable("fluidloggable.config.block_mixin.tooltip"))
                     .requireRestart()
                     .build());
         }

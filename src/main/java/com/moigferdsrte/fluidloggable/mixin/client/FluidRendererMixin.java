@@ -1,6 +1,6 @@
 package com.moigferdsrte.fluidloggable.mixin.client;
 
-import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.FluidRenderer;
 import net.minecraft.core.BlockPos;
@@ -134,9 +134,10 @@ public abstract class FluidRendererMixin {
 	) {
 		final BlockPos neighborPos = pos.relative(direction);
 		final BlockState neighborState = level.getBlockState(neighborPos);
-		if (WaterloggableBlockSupport.canStoreWater(neighborState) && !WaterloggableBlockSupport.isWaterlogged(neighborState)) {
-			return neighborState.getFluidState();
-		}
-		return level.getFluidState(neighborPos);
+		return FluidloggedBlockStateSupport.selectFluidForRendering(
+				neighborState,
+				level.getFluidState(neighborPos),
+				neighborState.getFluidState()
+		);
 	}
 }

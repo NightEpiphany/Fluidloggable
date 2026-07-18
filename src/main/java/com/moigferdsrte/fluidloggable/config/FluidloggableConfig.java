@@ -100,12 +100,13 @@ public final class FluidloggableConfig {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final String CLIENT_ONLY_COMPATIBILITY_MODE_KEY = "clientOnlyCompatibilityMode";
+    private static final String TRAPDOOR_FLUID_BLOCKING_KEY = "trapdoorFluidBlocking";
     private static final String BLOCK_MIXINS_KEY = "blockMixins";
-    private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("fluidloggable.json");
     private static final Map<String, Boolean> blockMixins = new LinkedHashMap<>();
     // Support for vanilla server.
     private static boolean clientOnlyCompatibilityMode;
-    private static boolean loaded;
+    private static volatile boolean trapdoorFluidBlocking;
+    private static volatile boolean loaded;
 
     private FluidloggableConfig() {
     }
@@ -116,8 +117,9 @@ public final class FluidloggableConfig {
         }
 
         resetToDefaults();
-        if (Files.exists(CONFIG_PATH)) {
-            readConfig();
+        final Path configPath = configPath();
+        if (Files.exists(configPath)) {
+            readConfig(configPath);
         }
 
         loaded = true;
@@ -130,9 +132,10 @@ public final class FluidloggableConfig {
     }
 
     public static synchronized void save() {
+        final Path configPath = configPath();
         try {
-            Files.createDirectories(CONFIG_PATH.getParent());
-            try (Writer writer = Files.newBufferedWriter(CONFIG_PATH)) {
+            Files.createDirectories(configPath.getParent());
+            try (Writer writer = Files.newBufferedWriter(configPath)) {
                 GSON.toJson(toJson(), writer);
             }
         } catch (IOException exception) {
@@ -152,6 +155,22 @@ public final class FluidloggableConfig {
 
     public static boolean defaultClientOnlyCompatibilityMode() {
         return FabricLoader.getInstance().getEnvironmentType() != EnvType.CLIENT;
+    }
+
+    public static boolean isTrapdoorFluidBlockingEnabled() {
+        if (!loaded) {
+            load();
+        }
+        return trapdoorFluidBlocking;
+    }
+
+    public static synchronized void setTrapdoorFluidBlockingEnabled(final boolean enabled) {
+        load();
+        trapdoorFluidBlocking = enabled;
+    }
+
+    public static boolean defaultTrapdoorFluidBlocking() {
+        return true;
     }
 
     public static synchronized boolean isBlockMixinEnabled(final String mixinSimpleName) {
@@ -188,14 +207,15 @@ public final class FluidloggableConfig {
 
     private static void resetToDefaults() {
         clientOnlyCompatibilityMode = defaultClientOnlyCompatibilityMode();
+        trapdoorFluidBlocking = defaultTrapdoorFluidBlocking();
         blockMixins.clear();
         for (String mixin : BLOCK_MIXINS) {
             blockMixins.put(mixin, true);
         }
     }
 
-    private static void readConfig() {
-        try (Reader reader = Files.newBufferedReader(CONFIG_PATH)) {
+    private static void readConfig(final Path configPath) {
+        try (Reader reader = Files.newBufferedReader(configPath)) {
             final JsonElement root = JsonParser.parseReader(reader);
             if (!root.isJsonObject()) {
                 return;
@@ -205,6 +225,11 @@ public final class FluidloggableConfig {
             final JsonElement clientOnlyCompatibilityModeElement = object.get(CLIENT_ONLY_COMPATIBILITY_MODE_KEY);
             if (clientOnlyCompatibilityModeElement != null && clientOnlyCompatibilityModeElement.isJsonPrimitive()) {
                 clientOnlyCompatibilityMode = clientOnlyCompatibilityModeElement.getAsBoolean();
+            }
+
+            final JsonElement trapdoorFluidBlockingElement = object.get(TRAPDOOR_FLUID_BLOCKING_KEY);
+            if (trapdoorFluidBlockingElement != null && trapdoorFluidBlockingElement.isJsonPrimitive()) {
+                trapdoorFluidBlocking = trapdoorFluidBlockingElement.getAsBoolean();
             }
 
             final JsonElement blockMixinsElement = object.get(BLOCK_MIXINS_KEY);
@@ -225,11 +250,16 @@ public final class FluidloggableConfig {
     private static JsonObject toJson() {
         final JsonObject root = new JsonObject();
         root.addProperty(CLIENT_ONLY_COMPATIBILITY_MODE_KEY, clientOnlyCompatibilityMode);
+        root.addProperty(TRAPDOOR_FLUID_BLOCKING_KEY, trapdoorFluidBlocking);
         final JsonObject blockMixinObject = new JsonObject();
         for (Map.Entry<String, Boolean> entry : blockMixins.entrySet()) {
             blockMixinObject.addProperty(entry.getKey(), entry.getValue());
         }
         root.add(BLOCK_MIXINS_KEY, blockMixinObject);
         return root;
+    }
+
+    private static Path configPath() {
+        return FabricLoader.getInstance().getConfigDir().resolve("fluidloggable.json");
     }
 }

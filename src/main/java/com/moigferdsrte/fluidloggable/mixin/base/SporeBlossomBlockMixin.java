@@ -11,21 +11,22 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
-import net.minecraft.world.level.block.SnowLayerBlock;
+import net.minecraft.world.level.block.SporeBlossomBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.FluidState;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(SnowLayerBlock.class)
-public abstract class SnowBlockMixin extends Block implements SimpleWaterloggedBlock {
-    public SnowBlockMixin(Properties properties) {
+@Mixin(SporeBlossomBlock.class)
+public abstract class SporeBlossomBlockMixin extends Block implements SimpleWaterloggedBlock {
+    public SporeBlossomBlockMixin(Properties properties) {
         super(properties);
     }
 
@@ -34,9 +35,15 @@ public abstract class SnowBlockMixin extends Block implements SimpleWaterloggedB
         this.registerDefaultState(FluidloggedBlockStateSupport.defaultToDry(this.defaultBlockState()));
     }
 
-    @Inject(method = "getStateForPlacement", at = @At("RETURN"), cancellable = true)
-    private void fluidloggable$waterlogOnPlacement(final BlockPlaceContext context, final CallbackInfoReturnable<BlockState> cir) {
-        cir.setReturnValue(FluidloggedBlockStateSupport.withPlacementFluid(cir.getReturnValue(), context));
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.@NonNull Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
+        builder.add(WaterloggableBlockSupport.WATERLOGGED, LavaloggableBlockSupport.LAVALOGGED);
+    }
+
+    @Override
+    public @Nullable BlockState getStateForPlacement(@NonNull BlockPlaceContext context) {
+        return FluidloggedBlockStateSupport.withPlacementFluid(super.getStateForPlacement(context), context);
     }
 
     @Override
@@ -62,10 +69,5 @@ public abstract class SnowBlockMixin extends Block implements SimpleWaterloggedB
                     FluidloggedBlockStateSupport.preserveFluidlogged(state, super.updateShape(state, level, ticks, pos, directionToNeighbour, neighbourPos, neighbourState, random))
             );
         }
-    }
-
-    @Inject(method = "createBlockStateDefinition", at = @At("TAIL"))
-    private void fluidloggable$addWaterlogged(final StateDefinition.Builder<Block, BlockState> builder, final CallbackInfo ci) {
-        builder.add(WaterloggableBlockSupport.WATERLOGGED, LavaloggableBlockSupport.LAVALOGGED);
     }
 }

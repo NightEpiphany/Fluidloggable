@@ -1,8 +1,9 @@
 package com.moigferdsrte.fluidloggable.mixin.flowing;
 
 import com.moigferdsrte.fluidloggable.Fluidloggable;
-import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
 import com.moigferdsrte.fluidloggable.extension.LevelExtension;
+import com.moigferdsrte.fluidloggable.flowing.FluidFlowBarrier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -10,6 +11,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
@@ -42,6 +44,11 @@ public abstract class FlowingFluidMixin {
 	}
 
 	@Shadow
+	private static boolean canHoldAnyFluid(final BlockState state) {
+		throw new AssertionError();
+	}
+
+	@Shadow
 	protected abstract FluidState getNewLiquid(ServerLevel level, BlockPos pos, BlockState state);
 
 	@Shadow
@@ -51,7 +58,7 @@ public abstract class FlowingFluidMixin {
 	protected abstract void spread(ServerLevel level, BlockPos pos, BlockState state, FluidState fluidState);
 
 	@Inject(method = "canMaybePassThrough", at = @At("HEAD"), cancellable = true)
-	private void fluidloggable$letWaterPassThroughWaterloggableBlocks(
+	private void fluidloggable$letStoredFluidPassThroughFluidloggedBlocks(
 		final BlockGetter level,
 		final BlockPos sourcePos,
 		final BlockState sourceState,
@@ -61,27 +68,56 @@ public abstract class FlowingFluidMixin {
 		final FluidState testFluidState,
 		final CallbackInfoReturnable<Boolean> cir
 	) {
-		if (this.fluidloggable$isWaterPermeableTarget(level, sourcePos, sourceState, direction, testPos, testState, testFluidState)) {
-			cir.setReturnValue(true);
+		final Fluid runningFluid = (Fluid) (Object) this;
+		if (!FluidloggedBlockStateSupport.isSupportedFluid(runningFluid)) {
+			return;
 		}
+
+		final boolean sourceContainsRunningFluid = fluidloggable$containsStoredFluid(level, sourcePos, sourceState, runningFluid);
+		final boolean targetCanStoreRunningFluid = FluidloggedBlockStateSupport.canStoreFluid(testState, runningFluid);
+		final FluidState exactTargetFluidState = level.getFluidState(testPos);
+		final boolean targetContainsStoredFluid = fluidloggable$containsStoredFluid(
+				level,
+				testPos,
+				testState,
+				exactTargetFluidState.getType()
+		);
+		if (!sourceContainsRunningFluid && !targetCanStoreRunningFluid && !targetContainsStoredFluid) {
+			return;
+		}
+
+		final boolean targetIsRunningSource = exactTargetFluidState.isSource()
+				&& exactTargetFluidState.getType().isSame(runningFluid);
+		cir.setReturnValue(
+				!targetIsRunningSource
+						&& (targetCanStoreRunningFluid || targetContainsStoredFluid || canHoldAnyFluid(testState))
+						&& this.fluidloggable$canPassThroughStoredFluidWall(
+								direction,
+								level,
+								sourcePos,
+								sourceState,
+								testPos,
+								testState
+						)
+		);
 	}
 
 	@Inject(method = "canHoldSpecificFluid", at = @At("HEAD"), cancellable = true)
-	private static void fluidloggable$letWaterloggableBlocksHoldPassingWater(
+	private static void fluidloggable$letFluidloggedBlocksHoldPassingFluid(
 		final BlockGetter level,
 		final BlockPos pos,
 		final BlockState state,
 		final Fluid newFluid,
 		final CallbackInfoReturnable<Boolean> cir
 	) {
-		if (WaterloggableBlockSupport.canStoreWater(state) && fluidloggable$isSameWater(newFluid)) {
-			FluidState currentFluid = level.getFluidState(pos);
-			cir.setReturnValue(currentFluid.isEmpty() || currentFluid.getType().isSame(newFluid));
+		if (FluidloggedBlockStateSupport.isSupportedFluid(newFluid)
+				&& FluidloggedBlockStateSupport.canStoreFluid(state, newFluid)) {
+			cir.setReturnValue(true);
 		}
 	}
 
 	@Inject(method = "spreadTo", at = @At("HEAD"), cancellable = true)
-	private void fluidloggable$spreadIntoWaterloggableBlock(
+	private void fluidloggable$spreadIntoFluidloggedBlock(
 		final LevelAccessor level,
 		final BlockPos pos,
 		final BlockState state,
@@ -89,8 +125,17 @@ public abstract class FlowingFluidMixin {
 		final FluidState target,
 		final CallbackInfo ci
 	) {
-		if (WaterloggableBlockSupport.canStoreWater(state) && fluidloggable$isSameWater(target.getType())) {
-			((LevelExtension)level).fluidloggable$setFluid(pos, target, Block.UPDATE_ALL | Fluidloggable.UPDATE_SCHEDULE_FLUID_TICK);
+		final Fluid targetFluid = target.getType();
+		final FluidState currentFluid = level.getFluidState(pos);
+		if (FluidloggedBlockStateSupport.isSupportedFluid(targetFluid)
+				&& FluidloggedBlockStateSupport.canStoreFluid(state, targetFluid)) {
+			if (currentFluid.isEmpty() || currentFluid.getType().isSame(targetFluid)) {
+				((LevelExtension)level).fluidloggable$setFluid(
+						pos,
+						target,
+						Block.UPDATE_ALL | Fluidloggable.UPDATE_SCHEDULE_FLUID_TICK
+				);
+			}
 			ci.cancel();
 		}
 	}
@@ -104,7 +149,8 @@ public abstract class FlowingFluidMixin {
 		final CallbackInfo ci
 	) {
 		BlockState currentBlockState = level.getBlockState(pos);
-		if (!WaterloggableBlockSupport.canStoreWater(currentBlockState) || !fluidloggable$isSameWater(fluidState.getType())) {
+		if (!FluidloggedBlockStateSupport.isSupportedFluid(fluidState.getType())
+				|| !FluidloggedBlockStateSupport.canStoreFluid(currentBlockState, fluidState.getType())) {
 			return;
 		}
 
@@ -144,7 +190,8 @@ public abstract class FlowingFluidMixin {
 		final FluidState currentFluidState
 	) {
 		BlockState previousBlock = level.getBlockState(pos);
-		if (WaterloggableBlockSupport.canStoreWater(previousBlock) && fluidloggable$isSameWater(currentFluidState.getType())) {
+		if (FluidloggedBlockStateSupport.isSupportedFluid(currentFluidState.getType())
+				&& FluidloggedBlockStateSupport.canStoreFluid(previousBlock, currentFluidState.getType())) {
 			((LevelExtension)level).fluidloggable$setFluid(pos, newState.getFluidState(), flags);
 			return false;
 		}
@@ -173,6 +220,31 @@ public abstract class FlowingFluidMixin {
 		final BlockState blockState
 	) {
 		return level.getFluidState(this.fluidloggable$lastCheckedFluidPos);
+	}
+
+	@Redirect(
+		method = "getNewLiquid",
+		at = @At(
+				value = "INVOKE",
+				target = "Lnet/minecraft/world/level/material/FlowingFluid;canPassThroughWall(Lnet/minecraft/core/Direction;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"
+		)
+	)
+	private boolean fluidloggable$getNewLiquidIgnoresContainingBlockCollision(
+			final Direction direction,
+			final BlockGetter level,
+			final BlockPos sourcePos,
+			final BlockState sourceState,
+			final BlockPos targetPos,
+			final BlockState targetState
+	) {
+		return this.fluidloggable$canPassThroughStoredFluidWall(
+				direction,
+				level,
+				sourcePos,
+				sourceState,
+				targetPos,
+				targetState
+		);
 	}
 
 	@Redirect(
@@ -212,24 +284,104 @@ public abstract class FlowingFluidMixin {
 		return level.getFluidState(bottomPos);
 	}
 
-	@Unique
-	private boolean fluidloggable$isWaterPermeableTarget(
-		final BlockGetter level,
-		final BlockPos sourcePos,
-		final BlockState sourceState,
-		final Direction direction,
-		final BlockPos targetPos,
-		final BlockState targetState,
-		final FluidState targetFluidState
+	@Redirect(
+		method = "isWaterHole",
+		at = @At(
+				value = "INVOKE",
+				target = "Lnet/minecraft/world/level/material/FlowingFluid;canPassThroughWall(Lnet/minecraft/core/Direction;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"
+		)
+	)
+	private boolean fluidloggable$isWaterHoleIgnoresContainingBlockCollision(
+			final Direction direction,
+			final BlockGetter level,
+			final BlockPos sourcePos,
+			final BlockState sourceState,
+			final BlockPos targetPos,
+			final BlockState targetState
 	) {
-		return WaterloggableBlockSupport.canStoreWater(targetState)
-			&& targetFluidState.getType().isSame((Fluid)(Object)this)
-			&& fluidloggable$isSameWater(targetFluidState.getType())
-			&& canPassThroughWall(direction, level, sourcePos, sourceState, targetPos, targetState);
+		return this.fluidloggable$canPassThroughStoredFluidWall(
+				direction,
+				level,
+				sourcePos,
+				sourceState,
+				targetPos,
+				targetState
+		);
 	}
 
 	@Unique
-	private static boolean fluidloggable$isSameWater(final Fluid fluid) {
-		return fluid.isSame(Fluids.WATER);
+	private boolean fluidloggable$canPassThroughStoredFluidWall(
+			final Direction direction,
+			final BlockGetter level,
+			final BlockPos sourcePos,
+			final BlockState sourceState,
+			final BlockPos targetPos,
+			final BlockState targetState
+	) {
+		if (FluidFlowBarrier.blocksPassage(direction, sourceState, targetState)) {
+			return false;
+		}
+
+		final Fluid runningFluid = (Fluid)(Object)this;
+		final BlockState effectiveSourceState = fluidloggable$isPassableFluidContainer(
+				level,
+				sourcePos,
+				sourceState,
+				runningFluid
+		)
+				? Blocks.AIR.defaultBlockState()
+				: sourceState;
+		final BlockState effectiveTargetState = fluidloggable$isPassableFluidContainer(
+				level,
+				targetPos,
+				targetState,
+				runningFluid
+		)
+				? Blocks.AIR.defaultBlockState()
+				: targetState;
+		return canPassThroughWall(
+				direction,
+				level,
+				sourcePos,
+				effectiveSourceState,
+				targetPos,
+				effectiveTargetState
+		);
 	}
+
+	@Unique
+	private static boolean fluidloggable$isPassableFluidContainer(
+			final BlockGetter level,
+			final BlockPos pos,
+			final BlockState state,
+			final Fluid runningFluid
+	) {
+		return fluidloggable$containsAnyStoredFluid(level, pos, state)
+				|| FluidloggedBlockStateSupport.canStoreFluid(state, runningFluid);
+	}
+
+	@Unique
+	private static boolean fluidloggable$containsAnyStoredFluid(
+			final BlockGetter level,
+			final BlockPos pos,
+			final BlockState state
+	) {
+		final FluidState storedFluid = level.getFluidState(pos);
+		return !storedFluid.isEmpty()
+				&& FluidloggedBlockStateSupport.isSupportedFluid(storedFluid.getType())
+				&& FluidloggedBlockStateSupport.containsFluid(state, storedFluid.getType());
+	}
+
+	@Unique
+	private static boolean fluidloggable$containsStoredFluid(
+			final BlockGetter level,
+			final BlockPos pos,
+			final BlockState state,
+			final Fluid fluid
+	) {
+		return FluidloggedBlockStateSupport.isSupportedFluid(fluid)
+				&& FluidloggedBlockStateSupport.containsFluid(state, fluid)
+				&& level.getFluidState(pos).getType().isSame(fluid);
+	}
+
 }

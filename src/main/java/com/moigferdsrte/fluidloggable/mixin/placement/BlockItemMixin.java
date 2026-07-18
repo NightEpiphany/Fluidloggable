@@ -27,7 +27,7 @@ public abstract class BlockItemMixin {
 
 	@Inject(method = "place", at = @At("HEAD"))
 	private void fluidloggable$clearStaleDoubleHeightFluid(
-			final BlockPlaceContext context,
+			final BlockPlaceContext placeContext,
 			final CallbackInfoReturnable<InteractionResult> cir
 	) {
 		DoubleHeightFluidPlacementSupport.discardUpperFluid();

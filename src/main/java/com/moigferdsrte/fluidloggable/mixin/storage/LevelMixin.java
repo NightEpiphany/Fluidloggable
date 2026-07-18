@@ -106,41 +106,40 @@ public abstract class LevelMixin implements LevelAccessor, AutoCloseable, LevelE
 	}
 
 	@ModifyVariable(
-		method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z",
-		at = @At("HEAD"),
-		argsOnly = true,
-		ordinal = 0
-	)
+			method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z",
+			at = @At("HEAD"),
+			argsOnly = true,
+			name = "blockState")
 	private BlockState fluidloggable$preserveFluidWhenUpdatingWaterloggableBlock(
-		final BlockState newState,
+		final BlockState blockState,
 		final BlockPos pos
 	) {
 		if (this.fluidloggable$syncingFluidloggedState) {
-			return newState;
+			return blockState;
 		}
 
 		Level level = (Level)(Object)this;
 		if (!level.isInValidBounds(pos) || !level.isClientSide() && level.isDebug()) {
-			return newState;
+			return blockState;
 		}
 
 		BlockState oldState = level.getBlockState(pos);
 		FluidState oldFluid = level.getFluidState(pos);
 		if (oldFluid.isEmpty()
 				|| !FluidloggedBlockStateSupport.containsFluid(oldState, oldFluid.getType())) {
-			return newState;
+			return blockState;
 		}
 
-		if (FluidloggedBlockStateSupport.canStoreFluid(newState, oldFluid.getType())
-				&& FluidloggedBlockStateSupport.hasNonFluidloggedStateChange(oldState, newState)) {
-			return FluidloggedBlockStateSupport.preserveFluidlogged(oldState, newState);
+		if (FluidloggedBlockStateSupport.canStoreFluid(blockState, oldFluid.getType())
+				&& FluidloggedBlockStateSupport.hasNonFluidloggedStateChange(oldState, blockState)) {
+			return FluidloggedBlockStateSupport.preserveFluidlogged(oldState, blockState);
 		}
 
-		if (newState.isAir()) {
+		if (blockState.isAir()) {
 			return oldFluid.createLegacyBlock();
 		}
 
-		return newState;
+		return blockState;
 	}
 
 	@Override

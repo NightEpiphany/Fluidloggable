@@ -21,7 +21,7 @@ dependencies {
 	implementation("net.fabricmc:fabric-loader:${providers.gradleProperty("loader_version").get()}")
 	implementation("maven.modrinth:modmenu:${providers.gradleProperty("modmenu_version").get()}")
 	implementation("maven.modrinth:cloth-config:${providers.gradleProperty("cloth_config_version").get()}")
-	implementation("maven.modrinth:AANobbMI:wpTNXtBM")
+	implementation("maven.modrinth:AANobbMI:2Yom1N68")
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	implementation("net.fabricmc.fabric-api:fabric-api:${providers.gradleProperty("fabric_api_version").get()}")
 	implementation("maven.modrinth:comforts:${providers.gradleProperty("comfort_version").get()}")

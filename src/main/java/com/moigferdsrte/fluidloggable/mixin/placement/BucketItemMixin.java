@@ -84,15 +84,28 @@ public abstract class BucketItemMixin extends Item {
             return;
         }
 
-        final BlockPos pos = hit.getBlockPos();
+        final BlockPos hitPos = hit.getBlockPos();
         final Direction direction = hit.getDirection();
-        if (!level.mayInteract(player, pos)
-                || !player.mayUseItemAt(pos.relative(direction), direction, stack)) {
+        final BlockPos adjacentPos = hitPos.relative(direction);
+        if (!level.mayInteract(player, hitPos)
+                || !player.mayUseItemAt(adjacentPos, direction, stack)) {
             cir.setReturnValue(InteractionResult.FAIL);
             return;
         }
 
-        final BlockState state = level.getBlockState(pos);
+		final BlockState hitState = level.getBlockState(hitPos);
+		if (this.content == Fluids.WATER && LavaloggableBlockSupport.isLavalogged(hitState)) {
+			cir.setReturnValue(InteractionResult.FAIL);
+			return;
+		}
+		if (this.content == Fluids.WATER && hitState.getBlock() instanceof LiquidBlockContainer) {
+			return;
+		}
+
+		final BlockPos placementPos = FluidloggedBlockStateSupport.canPlaceFluid(hitState, this.content)
+				? hitPos
+				: adjacentPos;
+		final BlockState state = level.getBlockState(placementPos);
 		if (!FluidloggedBlockStateSupport.canStoreFluid(state, this.content)) {
             return;
         }
@@ -108,22 +121,22 @@ public abstract class BucketItemMixin extends Item {
 		}
 
 		if (this.content == Fluids.WATER
-				&& level.environmentAttributes().getValue(EnvironmentAttributes.WATER_EVAPORATES, pos)) {
-            fluidloggable$evaporateWater(level, player, pos);
+				&& level.environmentAttributes().getValue(EnvironmentAttributes.WATER_EVAPORATES, placementPos)) {
+            fluidloggable$evaporateWater(level, player, placementPos);
         } else {
             ((LevelExtension) level).fluidloggable$setFluid(
-                    pos,
+					placementPos,
 					this.content == Fluids.LAVA
 							? Fluids.LAVA.getSource(false)
 							: Fluids.WATER.getSource(false),
                     Block.UPDATE_ALL | Fluidloggable.UPDATE_SCHEDULE_FLUID_TICK
             );
-            this.playEmptySound(player, level, pos);
+            this.playEmptySound(player, level, placementPos);
         }
 
-        this.checkExtraContent(player, level, stack, pos);
+        this.checkExtraContent(player, level, stack, placementPos);
         if (player instanceof ServerPlayer serverPlayer) {
-            CriteriaTriggers.PLACED_BLOCK.trigger(serverPlayer, pos, stack);
+            CriteriaTriggers.PLACED_BLOCK.trigger(serverPlayer, placementPos, stack);
         }
         player.awardStat(Stats.ITEM_USED.get((BucketItem) (Object) this));
 
