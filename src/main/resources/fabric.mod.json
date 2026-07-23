@@ -1,44 +1,37 @@
 {
 	"schemaVersion": 1,
-	"id": "fluidloggable",
+	"id": "gravity_changer",
 	"version": "${version}",
-	"name": "Fluidloggable",
-	"description": "Realistic Water logic.",
+	"name": "GravityChanger",
+	"description": "Multiple directional gravity choices for a refreshed survival experience.",
 	"authors": [
 		"NightEpiphany"
 	],
 	"license": "MIT",
-	"icon": "assets/fluidloggable/icon.png",
+	"icon": "assets/gravity_changer/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.moigferdsrte.fluidloggable.Fluidloggable"
+			"com.moigferdsrte.gravitychanger.GravityChanger"
 		],
 		"client": [
-			"com.moigferdsrte.fluidloggable.FluidloggableClient"
-		],
-		"server": [
-			"com.moigferdsrte.fluidloggable.FluidloggableServer"
+			"com.moigferdsrte.gravitychanger.GravityChangerClient"
 		],
 		"modmenu": [
-			"com.moigferdsrte.fluidloggable.config.FluidloggableConfigMenu"
+			"com.moigferdsrte.gravitychanger.client.GravityChangerModMenu"
 		]
 	},
 	"mixins": [
-		"fluidloggable.mixins.json",
-		"fluidloggable-farmersdelight.mixins.json",
-		"fluidloggable-sodium.mixins.json"
+		"gravity_changer.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.19.3",
 		"minecraft": "~26.2",
 		"java": ">=25",
 		"fabric-api": "*",
-		"modmenu": "*",
 		"cloth-config": "*"
 	},
-	"suggests": {
-		"farmersdelight": "*",
-		"sodium": "*"
+	"recommends": {
+		"modmenu": "*"
 	}
 }
