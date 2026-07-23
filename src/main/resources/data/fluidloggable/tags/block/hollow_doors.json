@@ -1,0 +1,22 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:acacia_door",
+    {
+      "id": "copycats:copycat_door",
+      "required": false
+    },
+    {
+      "id": "copycats:copycat_iron_door",
+      "required": false
+    },
+    {
+      "id": "copycats:copycat_sliding_door",
+      "required": false
+    },
+    {
+      "id": "copycats:copycat_folding_door",
+      "required": false
+    }
+  ]
+}

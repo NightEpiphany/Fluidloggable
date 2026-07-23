@@ -1,0 +1,27 @@
+{
+	"schemaVersion": 1,
+	"id": "fluidloggable-gametest",
+	"version": "1.0.0",
+	"name": "Fluidloggable Game Tests",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.moigferdsrte.fluidloggable.block.FluidloggedGameTestBootstrap"
+		],
+		"fabric-gametest": [
+			"com.moigferdsrte.fluidloggable.block.BlockDefaultStateGameTest",
+			"com.moigferdsrte.fluidloggable.block.BucketPlacementGameTest",
+			"com.moigferdsrte.fluidloggable.block.ComfortsBlockGameTest",
+			"com.moigferdsrte.fluidloggable.block.DoorFlowGameTest",
+			"com.moigferdsrte.fluidloggable.block.FarmersDelightBlockGameTest",
+			"com.moigferdsrte.fluidloggable.block.LavaloggedFlowGameTest",
+			"com.moigferdsrte.fluidloggable.block.TrapdoorFlowGameTest"
+		]
+	},
+	"depends": {
+		"fabricloader": "*",
+		"minecraft": "*",
+		"fabric-gametest-api-v1": "*",
+		"fluidloggable": "*"
+	}
+}

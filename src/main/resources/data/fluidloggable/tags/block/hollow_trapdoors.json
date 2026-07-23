@@ -1,0 +1,42 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:acacia_trapdoor",
+    "minecraft:jungle_trapdoor",
+    "minecraft:oak_trapdoor",
+    "minecraft:bamboo_trapdoor",
+    "minecraft:cherry_trapdoor",
+    "minecraft:mangrove_trapdoor",
+    "minecraft:copper_trapdoor",
+    "minecraft:exposed_copper_trapdoor",
+    "minecraft:weathered_copper_trapdoor",
+    "minecraft:oxidized_copper_trapdoor",
+    "minecraft:waxed_copper_trapdoor",
+    "minecraft:waxed_exposed_copper_trapdoor",
+    "minecraft:waxed_weathered_copper_trapdoor",
+    "minecraft:waxed_oxidized_copper_trapdoor",
+    "minecraft:iron_trapdoor",
+    "minecraft:warped_trapdoor",
+    "minecraft:crimson_trapdoor",
+    {
+      "id": "copycats:copycat_trapdoor",
+      "required": false
+    },
+    {
+      "id": "copycats:copycat_iron_trapdoor",
+      "required": false
+    },
+    {
+      "id": "ecologics:coconut_trapdoor",
+      "required": false
+    },
+    {
+      "id": "ecologics:azalea_trapdoor",
+      "required": false
+    },
+    {
+      "id": "ecologics:flowering_azalea_trapdoor",
+      "required": false
+    }
+  ]
+}

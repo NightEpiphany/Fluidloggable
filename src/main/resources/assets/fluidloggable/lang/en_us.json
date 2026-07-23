@@ -1,0 +1,10 @@
+{
+  "fluidloggable.config.title": "Fluidloggable",
+  "fluidloggable.config.category.general": "General",
+  "fluidloggable.config.category.block_mixins": "Block Mixins",
+  "fluidloggable.config.client_only_compatibility_mode": "Client-only Compatibility Mode",
+  "fluidloggable.config.client_only_compatibility_mode.tooltip": "Requires restart. Disables Fluidloggable mixins on physical clients so vanilla servers use the vanilla block state palette.",
+  "fluidloggable.config.collision_shape_fluid_blocking": "Collision Shape Fluid Blocking",
+  "fluidloggable.config.collision_shape_fluid_blocking.tooltip": "Uses a fluidloggable block's entity collision shape to decide whether water and lava can pass through. Controlled by the server in multiplayer.",
+  "fluidloggable.config.block_mixin.tooltip": "Requires restart."
+}

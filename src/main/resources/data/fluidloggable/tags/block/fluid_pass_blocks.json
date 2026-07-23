@@ -1,0 +1,54 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:fences",
+    "#minecraft:fence_gates",
+    "#minecraft:walls",
+    "#minecraft:bars",
+    "#minecraft:leaves",
+    "minecraft:vault",
+    "minecraft:spawner",
+    "minecraft:copper_grate",
+    "minecraft:exposed_copper_grate",
+    "minecraft:weathered_copper_grate",
+    "minecraft:oxidized_copper_grate",
+    "minecraft:waxed_copper_grate",
+    "minecraft:waxed_exposed_copper_grate",
+    "minecraft:waxed_weathered_copper_grate",
+    "minecraft:waxed_oxidized_copper_grate",
+    "#fluidloggable:hollow_trapdoors",
+    "#fluidloggable:hollow_doors",
+    {
+      "id": "copycats:copycat_ghost_block",
+      "required": false
+    },
+    {
+      "id": "copycats:copycat_box",
+      "required": false
+    },
+    {
+      "id": "copycats:copycat_vertical_stairs",
+      "required": false
+    },
+    {
+      "id": "copycats:copycat_stairs",
+      "required": false
+    },
+    {
+      "id": "copycats:copycat_vertical_slope",
+      "required": false
+    },
+    {
+      "id": "copycats:copycat_slope",
+      "required": false
+    },
+    {
+      "id": "copycats:copycat_slope_layer",
+      "required": false
+    },
+    {
+      "id": "copycats:copycat_slab",
+      "required": false
+    }
+  ]
+}
