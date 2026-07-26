@@ -1,0 +1,10 @@
+{
+  "fluidloggable.config.title": "Fluidloggable",
+  "fluidloggable.config.category.general": "一般設定",
+  "fluidloggable.config.category.block_mixins": "ブロック Mixin",
+  "fluidloggable.config.client_only_compatibility_mode": "クライアント限定互換モード",
+  "fluidloggable.config.client_only_compatibility_mode.tooltip": "再起動が必要です。クライアント側のFluidloggable Mixinを無効化し、バニラサーバーが標準のブロックステートパレットを利用できるようにします。",
+  "fluidloggable.config.collision_shape_fluid_blocking": "衝突形状による流体遮断",
+  "fluidloggable.config.collision_shape_fluid_blocking.tooltip": "流体を保持可能なブロックのエンティティ衝突形状に基づき、水やマグマの通過可否を判定します。マルチプレイではサーバー側設定が適用されます。",
+  "fluidloggable.config.block_mixin.tooltip": "再起動が必要です。"
+}
