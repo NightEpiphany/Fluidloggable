@@ -1,5 +1,6 @@
 package com.moigferdsrte.fluidloggable.mixin.client;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.FluidRenderer;
@@ -14,6 +15,24 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(FluidRenderer.class)
 public abstract class FluidRendererMixin {
+	@ModifyExpressionValue(
+		method = "shouldRenderFace",
+		at = @At(
+				value = "INVOKE",
+				target = "Lnet/minecraft/client/renderer/block/FluidRenderer;isFaceOccludedBySelf(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z"
+		)
+	)
+	private static boolean fluidloggable$keepStoredFluidTopVisible(
+			final boolean occluded,
+			final FluidState fluidState,
+			final BlockState blockState,
+			final Direction direction,
+			final FluidState neighborFluidState
+	) {
+		return occluded && !(direction == Direction.UP
+				&& FluidloggedBlockStateSupport.containsFluid(blockState, fluidState.getType()));
+	}
+
 	@Redirect(
 		method = "tesselate",
 		at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getFluidState()Lnet/minecraft/world/level/material/FluidState;", ordinal = 0)
@@ -135,6 +154,8 @@ public abstract class FluidRendererMixin {
 		final BlockPos neighborPos = pos.relative(direction);
 		final BlockState neighborState = level.getBlockState(neighborPos);
 		return FluidloggedBlockStateSupport.selectFluidForRendering(
+				level,
+				neighborPos,
 				neighborState,
 				level.getFluidState(neighborPos),
 				neighborState.getFluidState()

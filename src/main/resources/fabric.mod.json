@@ -10,6 +10,12 @@
 	"license": "MIT",
 	"icon": "assets/fluidloggable/icon.png",
 	"environment": "*",
+	"accessWidener": "fluidloggable.accessWidener",
+	"contact": {
+		"homepage": "https://modrinth.com/mod/fluidloggable",
+		"sources": "https://github.com/NightEpiphany/Fluidloggable",
+		"issues": "https://github.com/NightEpiphany/Fluidloggable/issues"
+	},
 	"entrypoints": {
 		"main": [
 			"com.moigferdsrte.fluidloggable.Fluidloggable"
@@ -29,7 +35,9 @@
 		"fluidloggable-comforts.mixins.json",
 		"fluidloggable-farmersdelight.mixins.json",
 		"fluidloggable-sodium.mixins.json",
-		"fluidloggable-bedrockify.mixins.json"
+		"fluidloggable-bedrockify.mixins.json",
+		"fluidloggable-create-copycat.mixins.json",
+		"fluidloggable-create-fly.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.19.3",

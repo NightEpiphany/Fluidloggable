@@ -126,11 +126,11 @@ public abstract class LevelMixin implements LevelAccessor, AutoCloseable, LevelE
 		BlockState oldState = level.getBlockState(pos);
 		FluidState oldFluid = level.getFluidState(pos);
 		if (oldFluid.isEmpty()
-				|| !FluidloggedBlockStateSupport.containsFluid(oldState, oldFluid.getType())) {
+				|| !FluidloggedBlockStateSupport.containsFluid(level, pos, oldState, oldFluid.getType())) {
 			return blockState;
 		}
 
-		if (FluidloggedBlockStateSupport.canStoreFluid(blockState, oldFluid.getType())
+		if (FluidloggedBlockStateSupport.canStoreFluid(level, pos, blockState, oldFluid.getType())
 				&& FluidloggedBlockStateSupport.hasNonFluidloggedStateChange(oldState, blockState)) {
 			return FluidloggedBlockStateSupport.preserveFluidlogged(oldState, blockState);
 		}
@@ -149,7 +149,12 @@ public abstract class LevelMixin implements LevelAccessor, AutoCloseable, LevelE
 		boolean success = level.setBlock(pos, state, flags);
 		if (success
 				&& !fluidState.isEmpty()
-				&& FluidloggedBlockStateSupport.canStoreFluid(level.getBlockState(pos), fluidState.getType())) {
+				&& FluidloggedBlockStateSupport.canStoreFluid(
+						level,
+						pos,
+						level.getBlockState(pos),
+						fluidState.getType()
+				)) {
 			this.fluidloggable$setFluid(pos, fluidState, flags | Fluidloggable.UPDATE_SCHEDULE_FLUID_TICK);
 		}
 		return success;

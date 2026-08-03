@@ -102,19 +102,19 @@ public abstract class LevelChunkMixin extends ChunkAccess implements LevelChunkE
 			return;
 		}
 
-		if (oldState.getFluidState() != state.getFluidState()) {
+		if (oldState.getFluidState() != state.getFluidState() || !this.level.getFluidState(pos).isEmpty()) {
 			fluidloggable$scheduleNearbyFluidTicks(this.level, pos);
 		}
 
 		final FluidState storedFluid = this.level.getFluidState(pos);
 		if (!storedFluid.isEmpty()
-				&& !FluidloggedBlockStateSupport.canStoreFluid(state, storedFluid.getType())) {
+				&& !FluidloggedBlockStateSupport.canStoreFluid(this.level, pos, state, storedFluid.getType())) {
 			int y = pos.getY();
 			LevelChunkSection section = this.getSection(this.getSectionIndex(y));
 			((LevelChunkSectionExtension)section).fluidloggable$setFluidState(pos.getX() & 15, y & 15, pos.getZ() & 15, Fluids.EMPTY.defaultFluidState());
 		} else if (!storedFluid.isEmpty()
-				&& FluidloggedBlockStateSupport.containsFluid(oldState, storedFluid.getType())
-				&& !FluidloggedBlockStateSupport.containsFluid(state, storedFluid.getType())
+				&& FluidloggedBlockStateSupport.containsFluid(this.level, pos, oldState, storedFluid.getType())
+				&& !FluidloggedBlockStateSupport.containsFluid(this.level, pos, state, storedFluid.getType())
 				&& !FluidloggedBlockStateSupport.hasNonFluidloggedStateChange(oldState, state)) {
 			int y = pos.getY();
 			LevelChunkSection section = this.getSection(this.getSectionIndex(y));

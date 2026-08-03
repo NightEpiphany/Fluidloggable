@@ -19,6 +19,42 @@
     "#fluidloggable:hollow_trapdoors",
     "#fluidloggable:hollow_doors",
     {
+      "id": "xercafood:vat",
+      "required": false
+    },
+    {
+      "id": "xercablocks:carved_acacia_1",
+      "required": false
+    },
+    {
+      "id": "xercablocks:carved_acacia_2",
+      "required": false
+    },
+    {
+      "id": "xercablocks:carved_acacia_3",
+      "required": false
+    },
+    {
+      "id": "xercablocks:carved_acacia_4",
+      "required": false
+    },
+    {
+      "id": "xercablocks:carved_acacia_5",
+      "required": false
+    },
+    {
+      "id": "xercablocks:carved_acacia_6",
+      "required": false
+    },
+    {
+      "id": "xercablocks:carved_acacia_7",
+      "required": false
+    },
+    {
+      "id": "xercablocks:carved_acacia_8",
+      "required": false
+    },
+    {
       "id": "copycats:copycat_ghost_block",
       "required": false
     },

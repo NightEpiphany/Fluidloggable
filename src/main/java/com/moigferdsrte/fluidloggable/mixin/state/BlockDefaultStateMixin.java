@@ -11,6 +11,6 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 public abstract class BlockDefaultStateMixin {
 	@ModifyVariable(method = "registerDefaultState", at = @At("HEAD"), argsOnly = true, name = "state")
 	private BlockState fluidloggable$defaultLavaloggedToFalse(final BlockState state) {
-		return FluidloggedBlockStateSupport.withDefaultLavaloggedFalse(state);
+		return FluidloggedBlockStateSupport.withDefaultFluidPropertiesFalse(state);
 	}
 }

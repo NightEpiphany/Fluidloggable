@@ -37,6 +37,38 @@
     {
       "id": "ecologics:flowering_azalea_trapdoor",
       "required": false
+    },
+    {
+      "id": "betterend:terminite_trapdoor",
+      "required": false
+    },
+    {
+      "id": "betterend:thallasium_trapdoor",
+      "required": false
+    },
+    {
+      "id": "betterend:mossy_glowshroom_trapdoor",
+      "required": false
+    },
+    {
+      "id": "betterend:pythadendron_trapdoor",
+      "required": false
+    },
+    {
+      "id": "betterend:end_lotus_trapdoor",
+      "required": false
+    },
+    {
+      "id": "betterend:lacugrove_trapdoor",
+      "required": false
+    },
+    {
+      "id": "betternether:lucernia_trapdoor",
+      "required": false
+    },
+    {
+      "id": "betternether:nether_sakura_trapdoor",
+      "required": false
     }
   ]
 }

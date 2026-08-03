@@ -5,6 +5,10 @@ plugins {
 	`maven-publish`
 }
 
+loom {
+	accessWidenerPath = file("src/main/resources/fluidloggable.accessWidener")
+}
+
 version = providers.gradleProperty("mod_version").get()
 group = providers.gradleProperty("maven_group").get()
 
@@ -23,6 +27,8 @@ dependencies {
 	implementation("maven.modrinth:cloth-config:${providers.gradleProperty("cloth_config_version").get()}")
 	implementation("maven.modrinth:AANobbMI:2Yom1N68")
 	implementation("maven.modrinth:ox3rDp1B:4pyW4Uba")
+	implementation("maven.modrinth:create-fly:26.2-rc-2-6.0.9-1")
+	implementation("maven.modrinth:copycats+-createfly-port:3.0.7-createfly+mc.26.2")
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	implementation("net.fabricmc.fabric-api:fabric-api:${providers.gradleProperty("fabric_api_version").get()}")
 	implementation("maven.modrinth:comforts:${providers.gradleProperty("comfort_version").get()}")

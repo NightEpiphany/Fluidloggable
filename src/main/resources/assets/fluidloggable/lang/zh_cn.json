@@ -1,10 +1,16 @@
 {
   "fluidloggable.config.title": "Fluidloggable",
   "fluidloggable.config.category.general": "常规",
+  "fluidloggable.config.category.dynamic_containers": "动态液体容器",
   "fluidloggable.config.category.block_mixins": "方块 Mixin",
+  "fluidloggable.config.category.compat_mixins": "兼容模组 Mixin",
   "fluidloggable.config.client_only_compatibility_mode": "仅客户端兼容模式",
   "fluidloggable.config.client_only_compatibility_mode.tooltip": "需要重启。禁用物理客户端上的 Fluidloggable Mixin，使原版服务端继续使用原版方块状态调色板。",
   "fluidloggable.config.collision_shape_fluid_blocking": "碰撞形状阻挡流体",
   "fluidloggable.config.collision_shape_fluid_blocking.tooltip": "根据可含水方块的实体碰撞形状决定水和岩浆能否穿过。多人游戏中由服务端配置决定。",
+  "fluidloggable.config.fluidloggable_mod_ids": "模组 ID",
+  "fluidloggable.config.fluidloggable_mod_ids.tooltip": "需要重启。将列表中每个模组的全部方块注册为动态水和岩浆容器。请填写仅含命名空间的 ID，例如 displaydelight。",
+  "fluidloggable.config.fluidloggable_block_ids": "方块 Identifier",
+  "fluidloggable.config.fluidloggable_block_ids.tooltip": "需要重启。仅将列表中的指定方块注册为动态水和岩浆容器。请填写完整 Identifier，例如 minecraft:lantern。",
   "fluidloggable.config.block_mixin.tooltip": "需要重启。"
 }

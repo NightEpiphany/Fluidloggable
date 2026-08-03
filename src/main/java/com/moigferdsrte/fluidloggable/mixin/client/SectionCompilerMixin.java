@@ -23,7 +23,6 @@ public abstract class SectionCompilerMixin {
 		@Local(argsOnly = true, name = "region") final RenderSectionRegion region,
 		@Local(name = "pos") final BlockPos pos
 	) {
-		// Verification token: blockState.getFluidState is redirected to region.getFluidState.
 		return region.getFluidState(pos);
 	}
 }

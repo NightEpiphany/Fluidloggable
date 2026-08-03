@@ -22,7 +22,13 @@ public final class FluidloggableConfigMenu implements ModMenuApi {
                 .setTitle(Component.translatable("fluidloggable.config.title"));
         final ConfigEntryBuilder entryBuilder = builder.entryBuilder();
         final ConfigCategory general = builder.getOrCreateCategory(Component.translatable("fluidloggable.config.category.general"));
+		final ConfigCategory dynamicContainers = builder.getOrCreateCategory(
+				Component.translatable("fluidloggable.config.category.dynamic_containers")
+		);
         final ConfigCategory blocks = builder.getOrCreateCategory(Component.translatable("fluidloggable.config.category.block_mixins"));
+		final ConfigCategory compatibility = builder.getOrCreateCategory(
+				Component.translatable("fluidloggable.config.category.compat_mixins")
+		);
 
         general.addEntry(entryBuilder
                 .startBooleanToggle(
@@ -34,6 +40,28 @@ public final class FluidloggableConfigMenu implements ModMenuApi {
                 .setTooltip(Component.translatable("fluidloggable.config.client_only_compatibility_mode.tooltip"))
                 .requireRestart()
                 .build());
+
+		dynamicContainers.addEntry(entryBuilder
+				.startStrList(
+						Component.translatable("fluidloggable.config.fluidloggable_mod_ids"),
+						FluidloggableConfig.getFluidloggableModIds()
+				)
+				.setDefaultValue(FluidloggableConfig.DEFAULT_FLUIDLOGGABLE_MOD_IDS)
+				.setSaveConsumer(FluidloggableConfig::setFluidloggableModIds)
+				.setTooltip(Component.translatable("fluidloggable.config.fluidloggable_mod_ids.tooltip"))
+				.requireRestart()
+				.build());
+
+		dynamicContainers.addEntry(entryBuilder
+				.startStrList(
+						Component.translatable("fluidloggable.config.fluidloggable_block_ids"),
+						FluidloggableConfig.getFluidloggableBlockIds()
+				)
+				.setDefaultValue(FluidloggableConfig.DEFAULT_FLUIDLOGGABLE_BLOCK_IDS)
+				.setSaveConsumer(FluidloggableConfig::setFluidloggableBlockIds)
+				.setTooltip(Component.translatable("fluidloggable.config.fluidloggable_block_ids.tooltip"))
+				.requireRestart()
+				.build());
 
         general.addEntry(entryBuilder
                 .startBooleanToggle(
@@ -54,6 +82,25 @@ public final class FluidloggableConfigMenu implements ModMenuApi {
                     .requireRestart()
                     .build());
         }
+
+		for (FluidloggableConfig.CompatibilityMixinGroup group : FluidloggableConfig.COMPATIBILITY_MIXIN_GROUPS) {
+			for (String mixin : group.mixins()) {
+				compatibility.addEntry(entryBuilder
+						.startBooleanToggle(
+								Component.literal(group.displayName() + " - " + FluidloggableConfig.displayName(mixin)),
+								FluidloggableConfig.isCompatibilityMixinEnabled(group.modId(), mixin)
+						)
+						.setDefaultValue(true)
+						.setSaveConsumer(enabled -> FluidloggableConfig.setCompatibilityMixinEnabled(
+								group.modId(),
+								mixin,
+								enabled
+						))
+						.setTooltip(Component.translatable("fluidloggable.config.block_mixin.tooltip"))
+						.requireRestart()
+						.build());
+			}
+		}
 
         builder.setSavingRunnable(FluidloggableConfig::save);
         return builder.build();

@@ -66,7 +66,7 @@ public class SerializableChunkDataMixin {
 				continue;
 			}
 
-			Short2ObjectMap<FluidState> fluidStates = ((LevelChunkSectionExtension)chunkSection).fluidloggable$getFluidStates();
+			Short2ObjectMap<FluidState> fluidStates = ((LevelChunkSectionExtension)chunkSection).fluidloggable$copyFluidStates();
 			if (fluidStates.isEmpty()) {
 				continue;
 			}
@@ -85,13 +85,17 @@ public class SerializableChunkDataMixin {
 			return;
 		}
 
-		Short2ObjectMap<FluidState> fluidStates = ((LevelChunkSectionExtension)section).fluidloggable$getFluidStates();
-		fluidStates.clear();
+		LevelChunkSectionExtension extension = (LevelChunkSectionExtension)section;
 		for (int i = 0; i + 1 < serialized.length; i += 2) {
 			FluidState fluidState = Fluid.FLUID_STATE_REGISTRY.byId(serialized[i + 1]);
 			if (fluidState != null && !fluidState.isEmpty()) {
 				final short packedPos = (short) serialized[i];
-				fluidStates.put(packedPos, fluidState);
+				extension.fluidloggable$setFluidState(
+						packedPos >> 8 & 15,
+						packedPos >> 4 & 15,
+						packedPos & 15,
+						fluidState
+				);
 				fluidloggable$syncStoredFluidProperty(section, packedPos, fluidState);
 			}
 		}

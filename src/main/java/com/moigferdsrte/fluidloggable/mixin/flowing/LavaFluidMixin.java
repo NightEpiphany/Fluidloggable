@@ -1,6 +1,6 @@
 package com.moigferdsrte.fluidloggable.mixin.flowing;
 
-import com.moigferdsrte.fluidloggable.block.LavaloggableBlockSupport;
+import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -25,7 +25,7 @@ public abstract class LavaFluidMixin {
 			final CallbackInfoReturnable<Boolean> cir
 	) {
 		final FluidState storedState = level.getFluidState(pos);
-		if (LavaloggableBlockSupport.isLavalogged(level.getBlockState(pos))
+		if (FluidloggedBlockStateSupport.containsFluid(level, pos, level.getBlockState(pos), Fluids.LAVA)
 				&& storedState.getType().isSame(Fluids.LAVA)
 				&& !storedState.isSource()
 				&& other.isSame(Fluids.LAVA)) {

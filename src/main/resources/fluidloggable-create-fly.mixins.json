@@ -1,0 +1,28 @@
+{
+  "plugin": "com.moigferdsrte.fluidloggable.mixin.plugin.FluidloggableMixinPlugin",
+  "required": true,
+  "package": "com.moigferdsrte.fluidloggable.compat.create.fly.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "AnalogLeverBlockMixin",
+    "BasinBlockMixin",
+    "BlazeBurnerBlockMixin",
+    "DiodeBlockMixin",
+    "DirectedDirectionalBlockMixin",
+    "FluidTankBlockMixin",
+    "KineticBlockMixin",
+    "LitBlazeBurnerBlockMixin",
+    "RedstoneRequesterBlockMixin",
+    "RepackagerBlockMixin",
+    "RotatedPillarKineticBlockMixin",
+    "SchematicannonBlockMixin",
+    "SchematicTableBlockMixin",
+    "StockTickerBlockMixin",
+    "TableClothBlockMixin",
+    "ToggleLatchBlockMixin",
+    "WrenchableDirectionalBlockMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

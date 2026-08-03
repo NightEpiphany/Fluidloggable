@@ -3,7 +3,6 @@ package com.moigferdsrte.fluidloggable.mixin.client;
 import com.moigferdsrte.fluidloggable.extension.LevelChunkSectionExtension;
 import com.moigferdsrte.fluidloggable.extension.SectionCopyExtension;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import net.minecraft.client.renderer.chunk.SectionCopy;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
@@ -35,10 +34,8 @@ public abstract class SectionCopyMixin implements SectionCopyExtension {
 			return;
 		}
 
-		Short2ObjectMap<FluidState> source = ((LevelChunkSectionExtension)sections[sectionIndex]).fluidloggable$getFluidStates();
-		if (!source.isEmpty()) {
-			Short2ObjectOpenHashMap<FluidState> copy = new Short2ObjectOpenHashMap<>(source);
-			copy.defaultReturnValue(Fluids.EMPTY.defaultFluidState());
+		Short2ObjectMap<FluidState> copy = ((LevelChunkSectionExtension)sections[sectionIndex]).fluidloggable$copyFluidStates();
+		if (!copy.isEmpty()) {
 			this.fluidloggable$fluidStates = copy;
 		}
 	}

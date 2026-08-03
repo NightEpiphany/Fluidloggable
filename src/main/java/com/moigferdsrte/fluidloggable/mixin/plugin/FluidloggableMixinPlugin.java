@@ -16,18 +16,19 @@ public class FluidloggableMixinPlugin implements IMixinConfigPlugin {
     private static final String BASE_MIXIN_PACKAGE = "com.moigferdsrte.fluidloggable.mixin.base.";
     private static final String SODIUM_COMPAT_PACKAGE = "com.moigferdsrte.fluidloggable.compat.sodium.mixin.";
     private static final String COMFORTS_COMPAT_PACKAGE = "com.moigferdsrte.fluidloggable.compat.comforts.mixin.";
+    private static final String CREATE_FLY_PACKAGE = "com.moigferdsrte.fluidloggable.compat.create.fly.mixin.";
+    private static final String CREATE_COPYCATS_PACKAGE = "com.moigferdsrte.fluidloggable.compat.create.copycats.mixin.";
     private static final String FARMERS_DELIGHT_COMPAT_PACKAGE = "com.moigferdsrte.fluidloggable.compat.farmersdelight.mixin.";
     private static final String BEDROCKIFY_COMPAT_PACKAGE = "com.moigferdsrte.fluidloggable.compat.bedrockify.mixin.";
-    private static final Map<String, String> FARMERS_DELIGHT_PARENT_MIXINS = Map.of(
-            "HangingTomatoBlockMixin", "CropBlockMixin",
-            "MushroomColonyBlockMixin", "VegetationBlockMixin",
-            "RiceBlockMixin", "VegetationBlockMixin",
-            "RicePaniclesBlockMixin", "CropBlockMixin",
-            "TomatoBlockMixin", "CropBlockMixin"
-    );
-
-    private static final Map<String, String> BEDROCKIFY_PARENT_MIXINS = Map.of(
-            "PotionCauldronBlockMixin", "CauldronBlockMixin");
+	private static final Map<String, String> COMPATIBILITY_PARENT_MIXINS = Map.ofEntries(
+			Map.entry("bedrockify:PotionCauldronBlockMixin", "CauldronBlockMixin"),
+			Map.entry("comforts:BaseComfortsBlockMixin", "BedBlockMixin"),
+			Map.entry("farmersdelight:HangingTomatoBlockMixin", "CropBlockMixin"),
+			Map.entry("farmersdelight:MushroomColonyBlockMixin", "VegetationBlockMixin"),
+			Map.entry("farmersdelight:RiceBlockMixin", "VegetationBlockMixin"),
+			Map.entry("farmersdelight:RicePaniclesBlockMixin", "CropBlockMixin"),
+			Map.entry("farmersdelight:TomatoBlockMixin", "CropBlockMixin")
+	);
 
     @Override
     public void onLoad(String mixinPackage) {
@@ -51,17 +52,13 @@ public class FluidloggableMixinPlugin implements IMixinConfigPlugin {
         if (mixinClassName.startsWith(SODIUM_COMPAT_PACKAGE)) {
             return FabricLoader.getInstance().isModLoaded("sodium");
         }
-        if (mixinClassName.startsWith(COMFORTS_COMPAT_PACKAGE)) {
-            return FabricLoader.getInstance().isModLoaded("comforts")
-                    && FluidloggableConfig.isBlockMixinEnabled("BedBlockMixin");
-        }
-        if (mixinClassName.startsWith(FARMERS_DELIGHT_COMPAT_PACKAGE)) {
-            return FabricLoader.getInstance().isModLoaded("farmersdelight")
-                    && FluidloggableConfig.isBlockMixinEnabled(FARMERS_DELIGHT_PARENT_MIXINS.getOrDefault(simpleName(mixinClassName), ""));
-        }
-        if (mixinClassName.startsWith(BEDROCKIFY_COMPAT_PACKAGE)) {
-            return FabricLoader.getInstance().isModLoaded("bedrockify")
-                    && FluidloggableConfig.isBlockMixinEnabled(BEDROCKIFY_PARENT_MIXINS.getOrDefault(simpleName(mixinClassName), ""));
+
+		final String compatibilityModId = compatibilityModId(mixinClassName);
+		if (compatibilityModId != null) {
+			final String mixinSimpleName = simpleName(mixinClassName);
+			return FabricLoader.getInstance().isModLoaded(compatibilityModId)
+					&& FluidloggableConfig.isCompatibilityMixinEnabled(compatibilityModId, mixinSimpleName)
+					&& isParentMixinEnabled(compatibilityModId, mixinSimpleName);
         }
 
         return true;
@@ -90,6 +87,30 @@ public class FluidloggableMixinPlugin implements IMixinConfigPlugin {
     private static String simpleName(final String className) {
         return className.substring(className.lastIndexOf('.') + 1);
     }
+
+	private static String compatibilityModId(final String mixinClassName) {
+		if (mixinClassName.startsWith(BEDROCKIFY_COMPAT_PACKAGE)) {
+			return "bedrockify";
+		}
+		if (mixinClassName.startsWith(COMFORTS_COMPAT_PACKAGE)) {
+			return "comforts";
+		}
+		if (mixinClassName.startsWith(CREATE_FLY_PACKAGE)) {
+			return "create";
+		}
+		if (mixinClassName.startsWith(CREATE_COPYCATS_PACKAGE)) {
+			return "copycats";
+		}
+		if (mixinClassName.startsWith(FARMERS_DELIGHT_COMPAT_PACKAGE)) {
+			return "farmersdelight";
+		}
+		return null;
+	}
+
+	private static boolean isParentMixinEnabled(final String modId, final String mixinSimpleName) {
+		final String parentMixin = COMPATIBILITY_PARENT_MIXINS.get(modId + ':' + mixinSimpleName);
+		return parentMixin == null || FluidloggableConfig.isBlockMixinEnabled(parentMixin);
+	}
 
     private static boolean isClientOnlyCompatibilityMode() {
         return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT

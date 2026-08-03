@@ -3,6 +3,7 @@ package com.moigferdsrte.fluidloggable.block;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.state.BlockState;
@@ -31,6 +32,12 @@ public final class FluidloggedBlockStateSupport {
 		return LavaloggableBlockSupport.isLavalogged(state)
 				? state.setValue(LavaloggableBlockSupport.LAVALOGGED, false)
 				: state;
+	}
+
+	public static BlockState withDefaultFluidPropertiesFalse(final BlockState state) {
+		return ConfiguredFluidloggableBlockSupport.isConfigured(state)
+				? defaultToDry(state)
+				: withDefaultLavaloggedFalse(state);
 	}
 
 	public static BlockState withPlacementFluid(final BlockState state, final BlockPlaceContext context) {
@@ -79,9 +86,32 @@ public final class FluidloggedBlockStateSupport {
 	}
 
 	public static boolean canStoreFluid(final BlockState state, final Fluid fluid) {
-		return isLava(fluid)
-				? LavaloggableBlockSupport.canStoreLava(state)
-				: isWater(fluid) && WaterloggableBlockSupport.canStoreWater(state);
+		if (!isSupportedFluid(fluid)) {
+			return false;
+		}
+		if (hasNativeFluidContainer(state)) {
+			return isLava(fluid)
+					? LavaloggableBlockSupport.canStoreLava(state)
+					: WaterloggableBlockSupport.canStoreWater(state);
+		}
+		return ConfiguredFluidloggableBlockSupport.isConfigured(state);
+	}
+
+	public static boolean canStoreFluid(
+			final BlockGetter level,
+			final BlockPos pos,
+			final BlockState state,
+			final Fluid fluid
+	) {
+		if (ConfiguredFluidloggableBlockSupport.isConfigured(state)) {
+			return isSupportedFluid(fluid)
+					&& ConfiguredFluidloggableBlockSupport.isConfigured(state, level, pos);
+		}
+		if (hasNativeFluidContainer(state)) {
+			return canStoreFluid(state, fluid);
+		}
+		return isSupportedFluid(fluid)
+				&& ConfiguredFluidloggableBlockSupport.isConfigured(state, level, pos);
 	}
 
 	public static boolean isSupportedFluid(final Fluid fluid) {
@@ -98,17 +128,49 @@ public final class FluidloggedBlockStateSupport {
 				: fallback;
 	}
 
+	public static FluidState selectFluidForRendering(
+			final BlockGetter level,
+			final BlockPos pos,
+			final BlockState state,
+			final FluidState storedFluid,
+			final FluidState fallback
+	) {
+		return !storedFluid.isEmpty() && containsFluid(level, pos, state, storedFluid.getType())
+				? storedFluid
+				: fallback;
+	}
+
 	public static boolean hasDifferentLightEmission(final FluidState previous, final FluidState current) {
 		return isLava(previous.getType()) != isLava(current.getType());
 	}
 
 	public static boolean containsFluid(final BlockState state, final Fluid fluid) {
-		if (isLava(fluid)) {
-			return LavaloggableBlockSupport.isLavalogged(state);
+		if (hasNativeFluidContainer(state)) {
+			if (isLava(fluid)) {
+				return LavaloggableBlockSupport.isLavalogged(state);
+			}
+			return isWater(fluid)
+					&& !LavaloggableBlockSupport.isLavalogged(state)
+					&& WaterloggableBlockSupport.isWaterlogged(state);
 		}
-		return isWater(fluid)
-				&& !LavaloggableBlockSupport.isLavalogged(state)
-				&& WaterloggableBlockSupport.isWaterlogged(state);
+		return isSupportedFluid(fluid) && ConfiguredFluidloggableBlockSupport.isConfigured(state);
+	}
+
+	public static boolean containsFluid(
+			final BlockGetter level,
+			final BlockPos pos,
+			final BlockState state,
+			final Fluid fluid
+	) {
+		if (ConfiguredFluidloggableBlockSupport.isConfigured(state)
+				&& !ConfiguredFluidloggableBlockSupport.isConfigured(state, level, pos)) {
+			return false;
+		}
+		if (hasNativeFluidContainer(state)) {
+			return containsFluid(state, fluid);
+		}
+		return isSupportedFluid(fluid)
+				&& ConfiguredFluidloggableBlockSupport.isConfigured(state, level, pos);
 	}
 
 	public static boolean hasNonFluidloggedStateChange(final BlockState oldState, final BlockState newState) {
@@ -127,14 +189,37 @@ public final class FluidloggedBlockStateSupport {
 	}
 
 	public static boolean canPlaceFluid(final BlockState state, final Fluid fluid) {
-		if (isLava(fluid)) {
-			return LavaloggableBlockSupport.canStoreLava(state)
+		if (hasNativeFluidContainer(state)) {
+			if (isLava(fluid)) {
+				return LavaloggableBlockSupport.canStoreLava(state)
+						&& !LavaloggableBlockSupport.isLavalogged(state);
+			}
+			return isWater(fluid)
+					&& WaterloggableBlockSupport.canStoreWater(state)
+					&& !WaterloggableBlockSupport.isWaterlogged(state)
 					&& !LavaloggableBlockSupport.isLavalogged(state);
 		}
-		return isWater(fluid)
-				&& WaterloggableBlockSupport.canStoreWater(state)
-				&& !WaterloggableBlockSupport.isWaterlogged(state)
-				&& !LavaloggableBlockSupport.isLavalogged(state);
+		return isSupportedFluid(fluid) && ConfiguredFluidloggableBlockSupport.isConfigured(state);
+	}
+
+	public static boolean canPlaceFluid(
+			final BlockGetter level,
+			final BlockPos pos,
+			final BlockState state,
+			final Fluid fluid
+	) {
+		if (!level.getFluidState(pos).isEmpty()) {
+			return false;
+		}
+		if (ConfiguredFluidloggableBlockSupport.isConfigured(state)) {
+			return isSupportedFluid(fluid)
+					&& ConfiguredFluidloggableBlockSupport.isConfigured(state, level, pos);
+		}
+		if (hasNativeFluidContainer(state)) {
+			return canPlaceFluid(state, fluid);
+		}
+		return isSupportedFluid(fluid)
+				&& ConfiguredFluidloggableBlockSupport.isConfigured(state, level, pos);
 	}
 
 	public static void scheduleFluidTick(
@@ -160,6 +245,11 @@ public final class FluidloggedBlockStateSupport {
 
 	private static boolean isWater(final Fluid fluid) {
 		return fluid.isSame(Fluids.WATER);
+	}
+
+	private static boolean hasNativeFluidContainer(final BlockState state) {
+		return state.hasProperty(WaterloggableBlockSupport.WATERLOGGED)
+				|| state.hasProperty(LavaloggableBlockSupport.LAVALOGGED);
 	}
 
 	private static boolean isLava(final Fluid fluid) {

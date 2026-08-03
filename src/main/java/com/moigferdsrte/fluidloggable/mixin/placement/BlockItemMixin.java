@@ -47,7 +47,7 @@ public abstract class BlockItemMixin {
 
 		BlockState placedState = level.getBlockState(pos);
 		if ((previousFluid.is(FluidTags.WATER) || previousFluid.is(FluidTags.LAVA))
-				&& FluidloggedBlockStateSupport.canStoreFluid(placedState, previousFluid.getType())) {
+				&& FluidloggedBlockStateSupport.canStoreFluid(level, pos, placedState, previousFluid.getType())) {
 			((LevelExtension)level).fluidloggable$setFluid(pos, previousFluid, Block.UPDATE_ALL | Fluidloggable.UPDATE_SCHEDULE_FLUID_TICK);
 		}
 		return true;

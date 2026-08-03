@@ -6,7 +6,7 @@ import net.minecraft.world.level.material.FluidState;
 public interface LevelChunkSectionExtension {
 	Short2ObjectMap<FluidState> fluidloggable$createAndSetFluidStatesMap();
 
-	Short2ObjectMap<FluidState> fluidloggable$getFluidStates();
+	Short2ObjectMap<FluidState> fluidloggable$copyFluidStates();
 
 	void fluidloggable$copyFluidStatesFrom(LevelChunkSectionExtension source);
 

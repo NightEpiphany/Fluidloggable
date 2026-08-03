@@ -32,7 +32,12 @@ public final class DoubleHeightFluidPlacementSupport {
 
 		final Level level = context.getLevel();
 		final BlockPos upperPos = context.getClickedPos().above();
-		if (FluidloggedBlockStateSupport.canStoreFluid(level.getBlockState(upperPos), upperFluid.getType())) {
+		if (FluidloggedBlockStateSupport.canStoreFluid(
+				level,
+				upperPos,
+				level.getBlockState(upperPos),
+				upperFluid.getType()
+		)) {
 			((LevelExtension) level).fluidloggable$setFluid(
 					upperPos,
 					upperFluid,

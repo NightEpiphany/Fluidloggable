@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.moigferdsrte.fluidloggable.Fluidloggable;
+import com.moigferdsrte.fluidloggable.block.ConfiguredFluidloggableBlockSupport;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -20,6 +21,49 @@ import java.util.List;
 import java.util.Map;
 
 public final class FluidloggableConfig {
+	public static final List<String> DEFAULT_FLUIDLOGGABLE_MOD_IDS = List.of(
+            "displaydelight",
+            "rusticdelight",
+            "betternether",
+            "betterend",
+            "nightlights",
+            "refurbished_furniture",
+            "windchimes",
+            "sootychimneys",
+            "enchantinginfuser",
+			"xercamusic"
+    );
+	public static final List<String> DEFAULT_FLUIDLOGGABLE_BLOCK_IDS = List.of(
+			"sereneseasons:season_sensor",
+            "alexsmobs:transmutation_table",
+			"alexsmobs:void_worm_effigy",
+            "xercafood:vat",
+            "xercablocks:carved_acacia_1",
+            "xercablocks:carved_acacia_2",
+            "xercablocks:carved_acacia_3",
+            "xercablocks:carved_acacia_4",
+            "xercablocks:carved_acacia_5",
+            "xercablocks:carved_acacia_6",
+            "xercablocks:carved_acacia_7",
+            "xercablocks:carved_acacia_8",
+            "thecopperierage:chime",
+            "thecopperierage:exposed_chime",
+            "thecopperierage:oxidized_chime",
+            "thecopperierage:weathered_chime",
+            "thecopperierage:waxed_chime",
+            "thecopperierage:waxed_exposed_chime",
+            "thecopperierage:waxed_oxidized_chime",
+            "thecopperierage:waxed_weathered_chime",
+			"thecopperierage:weighted_pressure_plate",
+			"thecopperierage:exposed_weighted_pressure_plate",
+			"thecopperierage:oxidized_weighted_pressure_plate",
+			"thecopperierage:weathered_weighted_pressure_plate",
+			"thecopperierage:waxed_weighted_pressure_plate",
+			"thecopperierage:waxed_exposed_weighted_pressure_plate",
+			"thecopperierage:waxed_oxidized_weighted_pressure_plate",
+			"thecopperierage:waxed_weathered_weighted_pressure_plate"
+    );
+
     public static final List<String> BLOCK_MIXINS = List.of(
             "AnvilBlockMixin",
             "AttachedStemBlockMixin",
@@ -99,12 +143,44 @@ public final class FluidloggableConfig {
             "WeightedPressurePlateBlockMixin"
     );
 
+	public static final List<CompatibilityMixinGroup> COMPATIBILITY_MIXIN_GROUPS = List.of(
+			new CompatibilityMixinGroup("bedrockify", "BedrockIfy", List.of(
+					"PotionCauldronBlockMixin"
+			)),
+			new CompatibilityMixinGroup("comforts", "Comforts", List.of(
+					"BaseComfortsBlockMixin"
+			)),
+			new CompatibilityMixinGroup("create", "Create", List.of(
+					"AnalogLeverBlockMixin", "BasinBlockMixin", "BlazeBurnerBlockMixin",
+					"DiodeBlockMixin", "DirectedDirectionalBlockMixin", "FluidTankBlockMixin",
+					"KineticBlockMixin", "LitBlazeBurnerBlockMixin", "RedstoneRequesterBlockMixin",
+					"RepackagerBlockMixin", "RotatedPillarKineticBlockMixin", "SchematicannonBlockMixin",
+					"SchematicTableBlockMixin", "StockTickerBlockMixin", "TableClothBlockMixin",
+					"ToggleLatchBlockMixin", "WrenchableDirectionalBlockMixin"
+			)),
+			new CompatibilityMixinGroup("copycats", "Create: Copycats", List.of(
+					"CopycatBlockFluidloggableMixin"
+			)),
+			new CompatibilityMixinGroup("farmersdelight", "Farmer's Delight", List.of(
+					"HangingTomatoBlockMixin", "MushroomColonyBlockMixin", "RiceBlockMixin",
+					"RicePaniclesBlockMixin", "TomatoBlockMixin", "CanvasRugBlockMixin",
+					"FeastBlockMixin", "PieBlockMixin", "RiceRollMedleyBlockMixin",
+					"RotatedFeastBlockMixin", "TatamiHalfMatBlockMixin", "TatamiMatBlockMixin"
+			))
+	);
+
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final String CLIENT_ONLY_COMPATIBILITY_MODE_KEY = "clientOnlyCompatibilityMode";
     private static final String COLLISION_SHAPE_FLUID_BLOCKING_KEY = "collisionShapeFluidBlocking";
     private static final String LEGACY_TRAPDOOR_FLUID_BLOCKING_KEY = "trapdoorFluidBlocking";
+	private static final String FLUIDLOGGABLE_MOD_IDS_KEY = "fluidloggableModIds";
+	private static final String FLUIDLOGGABLE_BLOCK_IDS_KEY = "fluidloggableBlockIds";
     private static final String BLOCK_MIXINS_KEY = "blockMixins";
+	private static final String COMPATIBILITY_MIXINS_KEY = "compatMixins";
     private static final Map<String, Boolean> blockMixins = new LinkedHashMap<>();
+	private static final Map<String, Boolean> compatibilityMixins = new LinkedHashMap<>();
+	private static List<String> fluidloggableModIds = DEFAULT_FLUIDLOGGABLE_MOD_IDS;
+	private static List<String> fluidloggableBlockIds = DEFAULT_FLUIDLOGGABLE_BLOCK_IDS;
     // Support for vanilla server.
     private static boolean clientOnlyCompatibilityMode;
     private static volatile boolean collisionShapeFluidBlocking;
@@ -125,6 +201,7 @@ public final class FluidloggableConfig {
         }
 
         loaded = true;
+		ConfiguredFluidloggableBlockSupport.invalidate();
         save();
     }
 
@@ -175,6 +252,28 @@ public final class FluidloggableConfig {
         return true;
     }
 
+	public static synchronized List<String> getFluidloggableModIds() {
+		load();
+		return List.copyOf(fluidloggableModIds);
+	}
+
+	public static synchronized void setFluidloggableModIds(final List<String> modIds) {
+		load();
+		fluidloggableModIds = List.copyOf(modIds);
+		ConfiguredFluidloggableBlockSupport.invalidate();
+	}
+
+	public static synchronized List<String> getFluidloggableBlockIds() {
+		load();
+		return List.copyOf(fluidloggableBlockIds);
+	}
+
+	public static synchronized void setFluidloggableBlockIds(final List<String> blockIds) {
+		load();
+		fluidloggableBlockIds = List.copyOf(blockIds);
+		ConfiguredFluidloggableBlockSupport.invalidate();
+	}
+
     public static synchronized boolean isBlockMixinEnabled(final String mixinSimpleName) {
         load();
         return blockMixins.getOrDefault(mixinSimpleName, true);
@@ -191,6 +290,23 @@ public final class FluidloggableConfig {
         load();
         return Collections.unmodifiableMap(new LinkedHashMap<>(blockMixins));
     }
+
+	public static synchronized boolean isCompatibilityMixinEnabled(final String modId, final String mixinSimpleName) {
+		load();
+		return compatibilityMixins.getOrDefault(compatibilityMixinKey(modId, mixinSimpleName), true);
+	}
+
+	public static synchronized void setCompatibilityMixinEnabled(
+			final String modId,
+			final String mixinSimpleName,
+			final boolean enabled
+	) {
+		load();
+		final String key = compatibilityMixinKey(modId, mixinSimpleName);
+		if (compatibilityMixins.containsKey(key)) {
+			compatibilityMixins.put(key, enabled);
+		}
+	}
 
     public static String displayName(final String mixinSimpleName) {
         final String withoutSuffix = mixinSimpleName.endsWith("Mixin")
@@ -210,11 +326,19 @@ public final class FluidloggableConfig {
     private static void resetToDefaults() {
         clientOnlyCompatibilityMode = defaultClientOnlyCompatibilityMode();
         collisionShapeFluidBlocking = defaultCollisionShapeFluidBlocking();
-        blockMixins.clear();
-        for (String mixin : BLOCK_MIXINS) {
-            blockMixins.put(mixin, true);
-        }
-    }
+		fluidloggableModIds = DEFAULT_FLUIDLOGGABLE_MOD_IDS;
+		fluidloggableBlockIds = DEFAULT_FLUIDLOGGABLE_BLOCK_IDS;
+		blockMixins.clear();
+		for (String mixin : BLOCK_MIXINS) {
+			blockMixins.put(mixin, true);
+		}
+		compatibilityMixins.clear();
+		for (CompatibilityMixinGroup group : COMPATIBILITY_MIXIN_GROUPS) {
+			for (String mixin : group.mixins()) {
+				compatibilityMixins.put(compatibilityMixinKey(group.modId(), mixin), true);
+	}
+		}
+	    }
 
     private static void readConfig(final Path configPath) {
         try (Reader reader = Files.newBufferedReader(configPath)) {
@@ -237,16 +361,22 @@ public final class FluidloggableConfig {
                 collisionShapeFluidBlocking = collisionShapeFluidBlockingElement.getAsBoolean();
             }
 
-            final JsonElement blockMixinsElement = object.get(BLOCK_MIXINS_KEY);
-            if (blockMixinsElement == null || !blockMixinsElement.isJsonObject()) {
-                return;
-            }
+			fluidloggableModIds = readStringList(object, FLUIDLOGGABLE_MOD_IDS_KEY, DEFAULT_FLUIDLOGGABLE_MOD_IDS);
+			fluidloggableBlockIds = readStringList(object, FLUIDLOGGABLE_BLOCK_IDS_KEY, DEFAULT_FLUIDLOGGABLE_BLOCK_IDS);
 
-            for (Map.Entry<String, JsonElement> entry : blockMixinsElement.getAsJsonObject().entrySet()) {
-                if (blockMixins.containsKey(entry.getKey()) && entry.getValue().isJsonPrimitive()) {
-                    blockMixins.put(entry.getKey(), entry.getValue().getAsBoolean());
-                }
-            }
+            final JsonElement blockMixinsElement = object.get(BLOCK_MIXINS_KEY);
+			if (blockMixinsElement != null && blockMixinsElement.isJsonObject()) {
+				for (Map.Entry<String, JsonElement> entry : blockMixinsElement.getAsJsonObject().entrySet()) {
+					if (blockMixins.containsKey(entry.getKey()) && entry.getValue().isJsonPrimitive()) {
+						blockMixins.put(entry.getKey(), entry.getValue().getAsBoolean());
+					}
+				}
+			}
+
+			final JsonElement compatibilityMixinsElement = object.get(COMPATIBILITY_MIXINS_KEY);
+			if (compatibilityMixinsElement != null && compatibilityMixinsElement.isJsonObject()) {
+				readCompatibilityMixins(compatibilityMixinsElement.getAsJsonObject());
+			}
         } catch (RuntimeException | IOException exception) {
             Fluidloggable.LOGGER.warn("Failed to read Fluidloggable config, using defaults", exception);
         }
@@ -256,15 +386,74 @@ public final class FluidloggableConfig {
         final JsonObject root = new JsonObject();
         root.addProperty(CLIENT_ONLY_COMPATIBILITY_MODE_KEY, clientOnlyCompatibilityMode);
         root.addProperty(COLLISION_SHAPE_FLUID_BLOCKING_KEY, collisionShapeFluidBlocking);
+		root.add(FLUIDLOGGABLE_MOD_IDS_KEY, GSON.toJsonTree(fluidloggableModIds));
+		root.add(FLUIDLOGGABLE_BLOCK_IDS_KEY, GSON.toJsonTree(fluidloggableBlockIds));
         final JsonObject blockMixinObject = new JsonObject();
         for (Map.Entry<String, Boolean> entry : blockMixins.entrySet()) {
             blockMixinObject.addProperty(entry.getKey(), entry.getValue());
         }
-        root.add(BLOCK_MIXINS_KEY, blockMixinObject);
-        return root;
-    }
+		root.add(BLOCK_MIXINS_KEY, blockMixinObject);
+		final JsonObject compatibilityMixinObject = new JsonObject();
+		for (CompatibilityMixinGroup group : COMPATIBILITY_MIXIN_GROUPS) {
+			final JsonObject groupObject = new JsonObject();
+			for (String mixin : group.mixins()) {
+				groupObject.addProperty(
+						mixin,
+						compatibilityMixins.getOrDefault(compatibilityMixinKey(group.modId(), mixin), true)
+				);
+			}
+			compatibilityMixinObject.add(group.modId(), groupObject);
+		}
+		root.add(COMPATIBILITY_MIXINS_KEY, compatibilityMixinObject);
+		return root;
+	}
 
-    private static Path configPath() {
-        return FabricLoader.getInstance().getConfigDir().resolve("fluidloggable.json");
-    }
+	private static void readCompatibilityMixins(final JsonObject compatibilityMixinObject) {
+		for (CompatibilityMixinGroup group : COMPATIBILITY_MIXIN_GROUPS) {
+			final JsonElement groupElement = compatibilityMixinObject.get(group.modId());
+			if (groupElement == null || !groupElement.isJsonObject()) {
+				continue;
+			}
+
+			for (Map.Entry<String, JsonElement> entry : groupElement.getAsJsonObject().entrySet()) {
+				final String key = compatibilityMixinKey(group.modId(), entry.getKey());
+				if (compatibilityMixins.containsKey(key) && entry.getValue().isJsonPrimitive()) {
+					compatibilityMixins.put(key, entry.getValue().getAsBoolean());
+				}
+			}
+		}
+	}
+
+	private static String compatibilityMixinKey(final String modId, final String mixinSimpleName) {
+		return modId + ':' + mixinSimpleName;
+	}
+
+	private static List<String> readStringList(
+			final JsonObject object,
+			final String key,
+			final List<String> fallback
+	) {
+		final JsonElement element = object.get(key);
+		if (element == null || !element.isJsonArray()) {
+			return fallback;
+		}
+
+		final java.util.ArrayList<String> values = new java.util.ArrayList<>();
+		for (JsonElement entry : element.getAsJsonArray()) {
+			if (entry.isJsonPrimitive() && entry.getAsJsonPrimitive().isString()) {
+				values.add(entry.getAsString());
+			}
+		}
+		return List.copyOf(values);
+	}
+
+	private static Path configPath() {
+		return FabricLoader.getInstance().getConfigDir().resolve("fluidloggable.json");
+	}
+
+	public record CompatibilityMixinGroup(String modId, String displayName, List<String> mixins) {
+		public CompatibilityMixinGroup {
+			mixins = List.copyOf(mixins);
+		}
+	}
 }

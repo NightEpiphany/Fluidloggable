@@ -74,7 +74,12 @@ public abstract class FlowingFluidMixin {
 		}
 
 		final boolean sourceContainsRunningFluid = fluidloggable$containsStoredFluid(level, sourcePos, sourceState, runningFluid);
-		final boolean targetCanStoreRunningFluid = FluidloggedBlockStateSupport.canStoreFluid(testState, runningFluid);
+		final boolean targetCanStoreRunningFluid = FluidloggedBlockStateSupport.canStoreFluid(
+				level,
+				testPos,
+				testState,
+				runningFluid
+		);
 		final FluidState exactTargetFluidState = level.getFluidState(testPos);
 		final boolean targetContainsStoredFluid = fluidloggable$containsStoredFluid(
 				level,
@@ -111,7 +116,7 @@ public abstract class FlowingFluidMixin {
 		final CallbackInfoReturnable<Boolean> cir
 	) {
 		if (FluidloggedBlockStateSupport.isSupportedFluid(newFluid)
-				&& FluidloggedBlockStateSupport.canStoreFluid(state, newFluid)) {
+				&& FluidloggedBlockStateSupport.canStoreFluid(level, pos, state, newFluid)) {
 			cir.setReturnValue(true);
 		}
 	}
@@ -128,7 +133,7 @@ public abstract class FlowingFluidMixin {
 		final Fluid targetFluid = target.getType();
 		final FluidState currentFluid = level.getFluidState(pos);
 		if (FluidloggedBlockStateSupport.isSupportedFluid(targetFluid)
-				&& FluidloggedBlockStateSupport.canStoreFluid(state, targetFluid)) {
+				&& FluidloggedBlockStateSupport.canStoreFluid(level, pos, state, targetFluid)) {
 			if (currentFluid.isEmpty() || currentFluid.getType().isSame(targetFluid)) {
 				((LevelExtension)level).fluidloggable$setFluid(
 						pos,
@@ -150,7 +155,7 @@ public abstract class FlowingFluidMixin {
 	) {
 		BlockState currentBlockState = level.getBlockState(pos);
 		if (!FluidloggedBlockStateSupport.isSupportedFluid(fluidState.getType())
-				|| !FluidloggedBlockStateSupport.canStoreFluid(currentBlockState, fluidState.getType())) {
+				|| !FluidloggedBlockStateSupport.canStoreFluid(level, pos, currentBlockState, fluidState.getType())) {
 			return;
 		}
 
@@ -191,7 +196,12 @@ public abstract class FlowingFluidMixin {
 	) {
 		BlockState previousBlock = level.getBlockState(pos);
 		if (FluidloggedBlockStateSupport.isSupportedFluid(currentFluidState.getType())
-				&& FluidloggedBlockStateSupport.canStoreFluid(previousBlock, currentFluidState.getType())) {
+				&& FluidloggedBlockStateSupport.canStoreFluid(
+						level,
+						pos,
+						previousBlock,
+						currentFluidState.getType()
+				)) {
 			((LevelExtension)level).fluidloggable$setFluid(pos, newState.getFluidState(), flags);
 			return false;
 		}
@@ -366,7 +376,7 @@ public abstract class FlowingFluidMixin {
 			final Fluid runningFluid
 	) {
 		return fluidloggable$containsAnyStoredFluid(level, pos, state)
-				|| FluidloggedBlockStateSupport.canStoreFluid(state, runningFluid);
+				|| FluidloggedBlockStateSupport.canStoreFluid(level, pos, state, runningFluid);
 	}
 
 	@Unique
@@ -378,7 +388,7 @@ public abstract class FlowingFluidMixin {
 		final FluidState storedFluid = level.getFluidState(pos);
 		return !storedFluid.isEmpty()
 				&& FluidloggedBlockStateSupport.isSupportedFluid(storedFluid.getType())
-				&& FluidloggedBlockStateSupport.containsFluid(state, storedFluid.getType());
+				&& FluidloggedBlockStateSupport.containsFluid(level, pos, state, storedFluid.getType());
 	}
 
 	@Unique
@@ -389,7 +399,7 @@ public abstract class FlowingFluidMixin {
 			final Fluid fluid
 	) {
 		return FluidloggedBlockStateSupport.isSupportedFluid(fluid)
-				&& FluidloggedBlockStateSupport.containsFluid(state, fluid)
+				&& FluidloggedBlockStateSupport.containsFluid(level, pos, state, fluid)
 				&& level.getFluidState(pos).getType().isSame(fluid);
 	}
 

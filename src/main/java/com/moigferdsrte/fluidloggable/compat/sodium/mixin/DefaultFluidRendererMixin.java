@@ -1,6 +1,6 @@
 package com.moigferdsrte.fluidloggable.compat.sodium.mixin;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.moigferdsrte.fluidloggable.block.ConfiguredFluidloggableBlockSupport;
 import com.moigferdsrte.fluidloggable.block.FluidloggedBlockStateSupport;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.core.BlockPos;
@@ -13,24 +13,24 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(targets = "net.caffeinemc.mods.sodium.client.render.chunk.compile.pipeline.DefaultFluidRenderer")
 public class DefaultFluidRendererMixin {
-	@ModifyExpressionValue(
-		method = "isFullBlockFluidVisible",
-		at = @At(value = "INVOKE", target = "Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/pipeline/DefaultFluidRenderer;isFullBlockFluidSelfVisible(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z")
-	)
-	private boolean fluidloggable$keepStoredFluidTopVisible(
-		final boolean original,
+	@Inject(method = "isFullBlockFluidVisible", at = @At("HEAD"), cancellable = true)
+	private void fluidloggable$keepConfiguredFluidTopVisible(
 		final BlockAndTintGetter view,
 		final BlockPos selfPos,
 		final Direction facing,
 		final BlockState selfState,
-		final FluidState fluidState
+		final FluidState fluidState,
+		final CallbackInfoReturnable<Boolean> cir
 	) {
-		return original
-				|| (facing == Direction.UP
-				&& FluidloggedBlockStateSupport.containsFluid(selfState, fluidState.getType()));
+		if (facing == Direction.UP
+				&& ConfiguredFluidloggableBlockSupport.isConfigured(selfState, view, selfPos)) {
+			cir.setReturnValue(!view.getFluidState(selfPos.above()).getType().isSame(fluidState.getType()));
+		}
 	}
 
 	@Redirect(
@@ -114,6 +114,8 @@ public class DefaultFluidRendererMixin {
 		final BlockPos neighborPos = selfPos.relative(facing);
 		final BlockState neighborState = view.getBlockState(neighborPos);
 		return FluidloggedBlockStateSupport.selectFluidForRendering(
+				view,
+				neighborPos,
 				neighborState,
 				view.getFluidState(neighborPos),
 				neighborState.getFluidState()

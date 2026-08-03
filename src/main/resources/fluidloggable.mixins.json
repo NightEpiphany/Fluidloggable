@@ -93,6 +93,8 @@
     "state.BlockDefaultStateMixin",
     "state.BlockStateBaseMixin",
     "state.StateDefinitionBuilderMixin",
+    "storage.BlockLightEngineMixin",
+    "storage.LightEngineAccessorMixin",
     "storage.LevelChunkMixin",
     "storage.LevelChunkSectionMixin",
     "storage.LevelMixin",

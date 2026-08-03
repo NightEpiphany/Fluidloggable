@@ -102,11 +102,11 @@ public abstract class BucketItemMixin extends Item {
 			return;
 		}
 
-		final BlockPos placementPos = FluidloggedBlockStateSupport.canPlaceFluid(hitState, this.content)
+		final BlockPos placementPos = FluidloggedBlockStateSupport.canPlaceFluid(level, hitPos, hitState, this.content)
 				? hitPos
 				: adjacentPos;
 		final BlockState state = level.getBlockState(placementPos);
-		if (!FluidloggedBlockStateSupport.canStoreFluid(state, this.content)) {
+		if (!FluidloggedBlockStateSupport.canStoreFluid(level, placementPos, state, this.content)) {
             return;
         }
 		if (this.content == Fluids.WATER && LavaloggableBlockSupport.isLavalogged(state)) {
@@ -116,7 +116,7 @@ public abstract class BucketItemMixin extends Item {
 		if (this.content == Fluids.WATER && state.getBlock() instanceof LiquidBlockContainer) {
 			return;
 		}
-		if (!FluidloggedBlockStateSupport.canPlaceFluid(state, this.content)) {
+		if (!FluidloggedBlockStateSupport.canPlaceFluid(level, placementPos, state, this.content)) {
 			return;
 		}
 
@@ -173,7 +173,7 @@ public abstract class BucketItemMixin extends Item {
         final FluidState fluidState = level.getFluidState(pos);
 		final Fluid storedFluid = fluidState.getType();
 		if ((!fluidState.is(FluidTags.WATER) && !fluidState.is(FluidTags.LAVA))
-				|| !FluidloggedBlockStateSupport.containsFluid(state, storedFluid)) {
+				|| !FluidloggedBlockStateSupport.containsFluid(level, pos, state, storedFluid)) {
             return false;
         }
 

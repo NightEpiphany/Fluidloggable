@@ -17,6 +17,10 @@
     {
       "id": "copycats:copycat_folding_door",
       "required": false
+    },
+    {
+      "id": "betterend:pythadendron_door",
+      "required": false
     }
   ]
 }

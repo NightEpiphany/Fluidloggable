@@ -24,7 +24,7 @@ public class LevelChunkSectionMixin implements LevelChunkSectionExtension {
 	private Short2ObjectMap<FluidState> fluidloggable$fluidStates;
 
 	@Override
-	public Short2ObjectMap<FluidState> fluidloggable$createAndSetFluidStatesMap() {
+	public synchronized Short2ObjectMap<FluidState> fluidloggable$createAndSetFluidStatesMap() {
 		Short2ObjectOpenHashMap<FluidState> map = new Short2ObjectOpenHashMap<>();
 		map.defaultReturnValue(Fluids.EMPTY.defaultFluidState());
 		this.fluidloggable$fluidStates = map;
@@ -32,23 +32,28 @@ public class LevelChunkSectionMixin implements LevelChunkSectionExtension {
 	}
 
 	@Override
-	public Short2ObjectMap<FluidState> fluidloggable$getFluidStates() {
-		return this.fluidloggable$fluidStates;
+	public synchronized Short2ObjectMap<FluidState> fluidloggable$copyFluidStates() {
+		Short2ObjectOpenHashMap<FluidState> copy = new Short2ObjectOpenHashMap<>();
+		for (Short2ObjectMap.Entry<FluidState> entry : this.fluidloggable$fluidStates.short2ObjectEntrySet()) {
+			copy.put(entry.getShortKey(), entry.getValue());
+		}
+		copy.defaultReturnValue(Fluids.EMPTY.defaultFluidState());
+		return copy;
 	}
 
 	@Override
-	public void fluidloggable$copyFluidStatesFrom(final LevelChunkSectionExtension source) {
-		this.fluidloggable$createAndSetFluidStatesMap().putAll(source.fluidloggable$getFluidStates());
+	public synchronized void fluidloggable$copyFluidStatesFrom(final LevelChunkSectionExtension source) {
+		this.fluidloggable$fluidStates = source.fluidloggable$copyFluidStates();
 	}
 
 	@Override
-	public FluidState fluidloggable$setFluidState(final int x, final int y, final int z, final FluidState fluidState) {
+	public synchronized FluidState fluidloggable$setFluidState(final int x, final int y, final int z, final FluidState fluidState) {
 		short key = fluidloggable$packLocalPos(x, y, z);
 		return fluidState.isEmpty() ? this.fluidloggable$fluidStates.remove(key) : this.fluidloggable$fluidStates.put(key, fluidState);
 	}
 
 	@Override
-	public FluidState fluidloggable$getFluidStateExact(final int x, final int y, final int z) {
+	public synchronized FluidState fluidloggable$getFluidStateExact(final int x, final int y, final int z) {
 		return this.fluidloggable$fluidStates.get(fluidloggable$packLocalPos(x, y, z));
 	}
 
@@ -68,10 +73,14 @@ public class LevelChunkSectionMixin implements LevelChunkSectionExtension {
 	}
 
 	@Inject(method = "getFluidState", at = @At("HEAD"), cancellable = true)
-	private void fluidloggable$getStoredFluidState(final int sectionX, final int sectionY, final int sectionZ, final CallbackInfoReturnable<FluidState> cir) {
-		FluidState storedFluid = this.fluidloggable$fluidStates.get(fluidloggable$packLocalPos(sectionX, sectionY, sectionZ));
+	private synchronized void fluidloggable$getStoredFluidState(final int sectionX, final int sectionY, final int sectionZ, final CallbackInfoReturnable<FluidState> cir) {
+		final short key = fluidloggable$packLocalPos(sectionX, sectionY, sectionZ);
+		FluidState storedFluid = this.fluidloggable$fluidStates.get(key);
 		if (!storedFluid.isEmpty()) {
-			cir.setReturnValue(storedFluid);
+			BlockState blockState = ((LevelChunkSection)(Object)this).getBlockState(sectionX, sectionY, sectionZ);
+			if (FluidloggedBlockStateSupport.canStoreFluid(blockState, storedFluid.getType())) {
+				cir.setReturnValue(storedFluid);
+			}
 		}
 	}
 
@@ -88,42 +97,43 @@ public class LevelChunkSectionMixin implements LevelChunkSectionExtension {
 	}
 
 	@Inject(method = "hasOnlyAir", at = @At("RETURN"), cancellable = true)
-	private void fluidloggable$storedFluidsMakeSectionNonEmpty(final CallbackInfoReturnable<Boolean> cir) {
+	private synchronized void fluidloggable$storedFluidsMakeSectionNonEmpty(final CallbackInfoReturnable<Boolean> cir) {
 		if (cir.getReturnValue() && !this.fluidloggable$fluidStates.isEmpty()) {
 			cir.setReturnValue(false);
 		}
 	}
 
 	@Inject(method = "hasFluid", at = @At("RETURN"), cancellable = true)
-	private void fluidloggable$hasStoredFluid(final CallbackInfoReturnable<Boolean> cir) {
+	private synchronized void fluidloggable$hasStoredFluid(final CallbackInfoReturnable<Boolean> cir) {
 		if (!cir.getReturnValue() && !this.fluidloggable$fluidStates.isEmpty()) {
 			cir.setReturnValue(true);
 		}
 	}
 
 	@Inject(method = "isRandomlyTickingFluids", at = @At("RETURN"), cancellable = true)
-	private void fluidloggable$storedFluidsCanRandomTick(final CallbackInfoReturnable<Boolean> cir) {
+	private synchronized void fluidloggable$storedFluidsCanRandomTick(final CallbackInfoReturnable<Boolean> cir) {
 		if (!cir.getReturnValue()) {
 			cir.setReturnValue(this.fluidloggable$fluidStates.values().stream().anyMatch(FluidState::isRandomlyTicking));
 		}
 	}
 
 	@Inject(method = "getSerializedSize", at = @At("RETURN"), cancellable = true)
-	private void fluidloggable$addStoredFluidPacketSize(final CallbackInfoReturnable<Integer> cir) {
+	private synchronized void fluidloggable$addStoredFluidPacketSize(final CallbackInfoReturnable<Integer> cir) {
 		cir.setReturnValue(cir.getReturnValue() + Short.BYTES + this.fluidloggable$fluidStates.size() * (Short.BYTES + Integer.BYTES));
 	}
 
 	@Inject(method = "write", at = @At("TAIL"))
 	private void fluidloggable$writeStoredFluids(final FriendlyByteBuf buffer, final CallbackInfo ci) {
-		buffer.writeShort(this.fluidloggable$fluidStates.size());
-		for (Short2ObjectMap.Entry<FluidState> entry : this.fluidloggable$fluidStates.short2ObjectEntrySet()) {
+		Short2ObjectMap<FluidState> fluidStates = this.fluidloggable$copyFluidStates();
+		buffer.writeShort(fluidStates.size());
+		for (Short2ObjectMap.Entry<FluidState> entry : fluidStates.short2ObjectEntrySet()) {
 			buffer.writeShort(entry.getShortKey());
 			buffer.writeInt(Fluid.FLUID_STATE_REGISTRY.getId(entry.getValue()));
 		}
 	}
 
 	@Inject(method = "read", at = @At("TAIL"))
-	private void fluidloggable$readStoredFluids(final FriendlyByteBuf buffer, final CallbackInfo ci) {
+	private synchronized void fluidloggable$readStoredFluids(final FriendlyByteBuf buffer, final CallbackInfo ci) {
 		this.fluidloggable$fluidStates.clear();
 		int size = buffer.readShort();
 		for (int i = 0; i < size; i++) {
