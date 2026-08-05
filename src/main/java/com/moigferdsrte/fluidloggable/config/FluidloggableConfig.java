@@ -4,14 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.moigferdsrte.fluidloggable.Fluidloggable;
 import com.moigferdsrte.fluidloggable.block.ConfiguredFluidloggableBlockSupport;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,9 +29,12 @@ public final class FluidloggableConfig {
             "windchimes",
             "sootychimneys",
             "enchantinginfuser",
-			"xercamusic"
+			"xercamusic",
+			"biomesoplenty"
     );
 	public static final List<String> DEFAULT_FLUIDLOGGABLE_BLOCK_IDS = List.of(
+			"deco_sniffer_egg:hollow_sniffer_egg",
+			"friendsandfoes:crab_egg",
 			"sereneseasons:season_sensor",
             "alexsmobs:transmutation_table",
 			"alexsmobs:void_worm_effigy",
@@ -175,6 +176,7 @@ public final class FluidloggableConfig {
     private static final String LEGACY_TRAPDOOR_FLUID_BLOCKING_KEY = "trapdoorFluidBlocking";
 	private static final String FLUIDLOGGABLE_MOD_IDS_KEY = "fluidloggableModIds";
 	private static final String FLUIDLOGGABLE_BLOCK_IDS_KEY = "fluidloggableBlockIds";
+	private static final String VERSION_KEY = "version";
     private static final String BLOCK_MIXINS_KEY = "blockMixins";
 	private static final String COMPATIBILITY_MIXINS_KEY = "compatMixins";
     private static final Map<String, Boolean> blockMixins = new LinkedHashMap<>();
@@ -194,15 +196,16 @@ public final class FluidloggableConfig {
             return;
         }
 
-        resetToDefaults();
-        final Path configPath = configPath();
-        if (Files.exists(configPath)) {
-            readConfig(configPath);
-        }
+	        resetToDefaults();
+	        final Path configPath = configPath();
+		final ConfigVersionManager.LoadResult loadResult = ConfigVersionManager.prepare(configPath);
+		loadResult.config().ifPresent(FluidloggableConfig::applyConfig);
 
-        loaded = true;
+	        loaded = true;
 		ConfiguredFluidloggableBlockSupport.invalidate();
-        save();
+		if (loadResult.shouldSave()) {
+			save();
+		}
     }
 
     public static synchronized void reload() {
@@ -323,9 +326,9 @@ public final class FluidloggableConfig {
         return builder.toString().replace("Red Stone", "Redstone");
     }
 
-    private static void resetToDefaults() {
-        clientOnlyCompatibilityMode = defaultClientOnlyCompatibilityMode();
-        collisionShapeFluidBlocking = defaultCollisionShapeFluidBlocking();
+	private static void resetToDefaults() {
+		clientOnlyCompatibilityMode = defaultClientOnlyCompatibilityMode();
+		collisionShapeFluidBlocking = defaultCollisionShapeFluidBlocking();
 		fluidloggableModIds = DEFAULT_FLUIDLOGGABLE_MOD_IDS;
 		fluidloggableBlockIds = DEFAULT_FLUIDLOGGABLE_BLOCK_IDS;
 		blockMixins.clear();
@@ -336,35 +339,29 @@ public final class FluidloggableConfig {
 		for (CompatibilityMixinGroup group : COMPATIBILITY_MIXIN_GROUPS) {
 			for (String mixin : group.mixins()) {
 				compatibilityMixins.put(compatibilityMixinKey(group.modId(), mixin), true);
-	}
+			}
 		}
-	    }
+	}
 
-    private static void readConfig(final Path configPath) {
-        try (Reader reader = Files.newBufferedReader(configPath)) {
-            final JsonElement root = JsonParser.parseReader(reader);
-            if (!root.isJsonObject()) {
-                return;
-            }
+	private static void applyConfig(final JsonObject object) {
+		try {
+			final JsonElement clientOnlyCompatibilityModeElement = object.get(CLIENT_ONLY_COMPATIBILITY_MODE_KEY);
+			if (clientOnlyCompatibilityModeElement != null && clientOnlyCompatibilityModeElement.isJsonPrimitive()) {
+				clientOnlyCompatibilityMode = clientOnlyCompatibilityModeElement.getAsBoolean();
+			}
 
-            final JsonObject object = root.getAsJsonObject();
-            final JsonElement clientOnlyCompatibilityModeElement = object.get(CLIENT_ONLY_COMPATIBILITY_MODE_KEY);
-            if (clientOnlyCompatibilityModeElement != null && clientOnlyCompatibilityModeElement.isJsonPrimitive()) {
-                clientOnlyCompatibilityMode = clientOnlyCompatibilityModeElement.getAsBoolean();
-            }
-
-            JsonElement collisionShapeFluidBlockingElement = object.get(COLLISION_SHAPE_FLUID_BLOCKING_KEY);
-            if (collisionShapeFluidBlockingElement == null) {
-                collisionShapeFluidBlockingElement = object.get(LEGACY_TRAPDOOR_FLUID_BLOCKING_KEY);
-            }
-            if (collisionShapeFluidBlockingElement != null && collisionShapeFluidBlockingElement.isJsonPrimitive()) {
-                collisionShapeFluidBlocking = collisionShapeFluidBlockingElement.getAsBoolean();
-            }
+			JsonElement collisionShapeFluidBlockingElement = object.get(COLLISION_SHAPE_FLUID_BLOCKING_KEY);
+			if (collisionShapeFluidBlockingElement == null) {
+				collisionShapeFluidBlockingElement = object.get(LEGACY_TRAPDOOR_FLUID_BLOCKING_KEY);
+			}
+			if (collisionShapeFluidBlockingElement != null && collisionShapeFluidBlockingElement.isJsonPrimitive()) {
+				collisionShapeFluidBlocking = collisionShapeFluidBlockingElement.getAsBoolean();
+			}
 
 			fluidloggableModIds = readStringList(object, FLUIDLOGGABLE_MOD_IDS_KEY, DEFAULT_FLUIDLOGGABLE_MOD_IDS);
 			fluidloggableBlockIds = readStringList(object, FLUIDLOGGABLE_BLOCK_IDS_KEY, DEFAULT_FLUIDLOGGABLE_BLOCK_IDS);
 
-            final JsonElement blockMixinsElement = object.get(BLOCK_MIXINS_KEY);
+			final JsonElement blockMixinsElement = object.get(BLOCK_MIXINS_KEY);
 			if (blockMixinsElement != null && blockMixinsElement.isJsonObject()) {
 				for (Map.Entry<String, JsonElement> entry : blockMixinsElement.getAsJsonObject().entrySet()) {
 					if (blockMixins.containsKey(entry.getKey()) && entry.getValue().isJsonPrimitive()) {
@@ -377,21 +374,22 @@ public final class FluidloggableConfig {
 			if (compatibilityMixinsElement != null && compatibilityMixinsElement.isJsonObject()) {
 				readCompatibilityMixins(compatibilityMixinsElement.getAsJsonObject());
 			}
-        } catch (RuntimeException | IOException exception) {
-            Fluidloggable.LOGGER.warn("Failed to read Fluidloggable config, using defaults", exception);
-        }
-    }
+		} catch (RuntimeException exception) {
+			Fluidloggable.LOGGER.warn("Failed to read Fluidloggable config, using defaults", exception);
+		}
+	}
 
-    private static JsonObject toJson() {
-        final JsonObject root = new JsonObject();
-        root.addProperty(CLIENT_ONLY_COMPATIBILITY_MODE_KEY, clientOnlyCompatibilityMode);
-        root.addProperty(COLLISION_SHAPE_FLUID_BLOCKING_KEY, collisionShapeFluidBlocking);
+	private static JsonObject toJson() {
+		final JsonObject root = new JsonObject();
+		root.addProperty(VERSION_KEY, ConfigVersionManager.currentVersion());
+		root.addProperty(CLIENT_ONLY_COMPATIBILITY_MODE_KEY, clientOnlyCompatibilityMode);
+		root.addProperty(COLLISION_SHAPE_FLUID_BLOCKING_KEY, collisionShapeFluidBlocking);
 		root.add(FLUIDLOGGABLE_MOD_IDS_KEY, GSON.toJsonTree(fluidloggableModIds));
 		root.add(FLUIDLOGGABLE_BLOCK_IDS_KEY, GSON.toJsonTree(fluidloggableBlockIds));
-        final JsonObject blockMixinObject = new JsonObject();
-        for (Map.Entry<String, Boolean> entry : blockMixins.entrySet()) {
-            blockMixinObject.addProperty(entry.getKey(), entry.getValue());
-        }
+		final JsonObject blockMixinObject = new JsonObject();
+		for (Map.Entry<String, Boolean> entry : blockMixins.entrySet()) {
+			blockMixinObject.addProperty(entry.getKey(), entry.getValue());
+		}
 		root.add(BLOCK_MIXINS_KEY, blockMixinObject);
 		final JsonObject compatibilityMixinObject = new JsonObject();
 		for (CompatibilityMixinGroup group : COMPATIBILITY_MIXIN_GROUPS) {

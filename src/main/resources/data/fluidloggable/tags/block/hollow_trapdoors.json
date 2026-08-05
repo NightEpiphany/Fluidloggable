@@ -69,6 +69,34 @@
     {
       "id": "betternether:nether_sakura_trapdoor",
       "required": false
+    },
+    {
+      "id": "biomesoplenty:origin_oak_trapdoor",
+      "required": false
+    },
+    {
+      "id": "biomesoplenty:dead_trapdoor",
+      "required": false
+    },
+    {
+      "id": "biomesoplenty:willow_trapdoor",
+      "required": false
+    },
+    {
+      "id": "biomesoplenty:mahogany_trapdoor",
+      "required": false
+    },
+    {
+      "id": "biomesoplenty:palm_trapdoor",
+      "required": false
+    },
+    {
+      "id": "biomesoplenty:hellbark_trapdoor",
+      "required": false
+    },
+    {
+      "id": "biomesoplenty:umbran_trapdoor",
+      "required": false
     }
   ]
 }
