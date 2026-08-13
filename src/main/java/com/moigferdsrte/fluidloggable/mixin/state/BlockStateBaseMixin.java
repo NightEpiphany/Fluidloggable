@@ -1,6 +1,8 @@
 package com.moigferdsrte.fluidloggable.mixin.state;
 
+import com.moigferdsrte.fluidloggable.block.ConfiguredFluidloggableBlockSupport;
 import com.moigferdsrte.fluidloggable.block.LavaloggableBlockSupport;
+import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
@@ -14,10 +16,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(BlockBehaviour.BlockStateBase.class)
 public abstract class BlockStateBaseMixin {
 	@Inject(method = "getFluidState", at = @At("HEAD"), cancellable = true)
-	private void fluidloggable$lavaTakesPriority(final CallbackInfoReturnable<FluidState> cir) {
+	private void fluidloggable$configuredFluidPropertiesDefineFluid(final CallbackInfoReturnable<FluidState> cir) {
 		final BlockState state = (BlockState) (Object) this;
 		if (LavaloggableBlockSupport.isLavalogged(state)) {
 			cir.setReturnValue(Fluids.LAVA.getSource(false));
+		} else if (ConfiguredFluidloggableBlockSupport.isConfigured(state)
+				&& WaterloggableBlockSupport.isWaterlogged(state)) {
+			cir.setReturnValue(Fluids.WATER.getSource(false));
 		}
 	}
 

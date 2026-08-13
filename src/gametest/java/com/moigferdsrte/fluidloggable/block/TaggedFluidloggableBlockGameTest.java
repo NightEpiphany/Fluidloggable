@@ -19,6 +19,26 @@ import net.minecraft.world.phys.BlockHitResult;
 
 public final class TaggedFluidloggableBlockGameTest {
 	@GameTest(maxTicks = 1)
+	public void debugPropertyChangeCreatesWaterInConfiguredBlock(final GameTestHelper helper) {
+		final BlockPos pos = helper.absolutePos(new BlockPos(3, 2, 3));
+		final var level = helper.getLevel();
+		final BlockState waterlogged = FluidloggedGameTestBootstrap.taggedBlock.defaultBlockState()
+				.setValue(WaterloggableBlockSupport.WATERLOGGED, true);
+
+		level.setBlock(pos, waterlogged, Block.UPDATE_ALL);
+
+		helper.assertTrue(
+				level.getBlockState(pos).getFluidState().isSourceOfType(Fluids.WATER),
+				"Configured WATERLOGGED state must expose a water source"
+		);
+		helper.assertTrue(
+				level.getFluidState(pos).isSourceOfType(Fluids.WATER),
+				"World fluid lookup must observe debug-set WATERLOGGED state"
+		);
+		helper.succeed();
+	}
+
+	@GameTest(maxTicks = 1)
 	public void configuredBlockStoresExactWaterAndLavaWithStateProperties(final GameTestHelper helper) {
 		helper.assertFalse(
 				ConfiguredFluidloggableBlockSupport.isConfigured(FluidloggedGameTestBootstrap.lateConfiguredBlock.defaultBlockState()),
