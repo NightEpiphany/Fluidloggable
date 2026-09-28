@@ -70,6 +70,7 @@
 package de.leximon.fluidlogged.network;
 
 import de.leximon.fluidlogged.Fluidlogged;
+import de.leximon.fluidlogged.platform.services.Services;
 import it.unimi.dsi.fastutil.shorts.ShortSet;
 import net.minecraft.core.SectionPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -78,7 +79,6 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.chunk.LevelChunkSection;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 
 import java.util.List;
@@ -105,7 +105,7 @@ public class ClientboundSectionFluidsUpdatePacket implements CustomPacketPayload
         for(int j = 0; j < length; ++j) {
             long idAndPos = buf.readVarLong();
             this.positions[j] = (short)((int) (idAndPos & 0xFFF));
-            this.states[j] = Fluid.FLUID_STATE_REGISTRY.byId((int) (idAndPos >>> 12));
+            this.states[j] = Services.PLATFORM.getFluidStateIdMapper().byIdOrThrow((int) (idAndPos >>> 12));
         }
     }
     

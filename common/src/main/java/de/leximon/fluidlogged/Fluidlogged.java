@@ -45,8 +45,7 @@ public class Fluidlogged {
         if (fluidState == null) {
             return 0;
         } else {
-            int i = Services.PLATFORM.getFluidStateIdMapper().getId(fluidState);
-            return i == -1 ? 0 : i;
+            return Services.PLATFORM.getFluidStateIdMapper().getIdOrThrow(fluidState);
         }
     }
 

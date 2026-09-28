@@ -5,6 +5,7 @@ import de.leximon.fluidlogged.commands.SetFluidCommand;
 import de.leximon.fluidlogged.commands.arguments.FluidStateArgument;
 import de.leximon.fluidlogged.config.ConfigScreen;
 import de.leximon.fluidlogged.config.YaclMissingScreen;
+import de.leximon.fluidlogged.platform.ForgePlatformHelper;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
@@ -22,6 +23,7 @@ import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
@@ -75,6 +77,14 @@ public class FluidloggedForge {
 
     }
     
+    @EventBusSubscriber(modid = Fluidlogged.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+    public static class CommonModEvents {
+        @SubscribeEvent
+        public static void onCommonSetup(FMLCommonSetupEvent event) {
+            event.enqueueWork(ForgePlatformHelper::initializeFluidStateIdMapper);
+        }
+    }
+
     @EventBusSubscriber(modid = Fluidlogged.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents {
         @SubscribeEvent

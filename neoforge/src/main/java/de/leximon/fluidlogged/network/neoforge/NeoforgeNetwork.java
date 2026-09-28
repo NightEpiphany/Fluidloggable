@@ -12,7 +12,8 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 public class NeoforgeNetwork {
     @SubscribeEvent
     public static void registerPacketPayloads(final RegisterPayloadHandlersEvent event) {
-        final PayloadRegistrar registrar = event.registrar("1");
+        // Modded fluid-state IDs require the corrected table on both peers.
+        final PayloadRegistrar registrar = event.registrar("2");
         
         registrar.playToClient(
           ClientboundFluidUpdatePacket.PACKET_TYPE,
