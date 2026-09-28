@@ -1,9 +1,11 @@
-<img src="https://i.imgur.com/RvfMjvb.png" alt="Icon" width="128" height="128" />
+<img src="common/src/main/resources/fluidlogged.png" alt="Fluidloggable icon" width="128" height="128" />
 
-# Fluidlogged
+# Fluidloggable
 Allows "fluidlogging" for any block by storing fluids separately in each chunk. Fluids can now also pass through blocks!
 
-More about this mod on [Modrinth](https://modrinth.com/mod/fluidlogged) / [Curseforge](https://www.curseforge.com/minecraft/mc-mods/fluidlogged)
+More about this mod on [Modrinth](https://modrinth.com/mod/fluidloggable). Source and issue reports are maintained at [NightEpiphany/Fluidloggable](https://github.com/NightEpiphany/Fluidloggable).
+
+Originally created by Leximon; continued by NightEpiphany and contributors.
 
 ## API for mod compatibility
 *Coming soon in later versions of this mod...*
