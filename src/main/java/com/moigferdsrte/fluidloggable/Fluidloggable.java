@@ -18,6 +18,7 @@ public final class Fluidloggable implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		LOGGER.info("Initializing Fluidloggable");
+		com.moigferdsrte.fluidloggable.network.CompatibilityNetworking.register();
 		PayloadTypeRegistry.clientboundPlay().register(ClientboundFluidUpdatePacket.TYPE, ClientboundFluidUpdatePacket.STREAM_CODEC);
 	}
 

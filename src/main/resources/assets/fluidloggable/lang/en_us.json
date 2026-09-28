@@ -1,4 +1,7 @@
 {
+  "fluidloggable.disconnect.missing_support": "This server does not advertise compatible Fluidloggable support. For a server without Fluidloggable, enable Mods > Fluidloggable > General > Client-only Compatibility Mode, then restart Minecraft. If the server uses Fluidloggable, update both sides to a build with this compatibility check.",
+  "fluidloggable.disconnect.compatibility_mode": "This server uses Fluidloggable, but Client-only Compatibility Mode disabled your fluidlogging features at startup. Turn that mode off in Mods > Fluidloggable > General, then restart Minecraft and reconnect.",
+  "fluidloggable.disconnect.protocol_mismatch": "Your Fluidloggable network version does not match this server. Install the same compatible build on client and server, then restart Minecraft.",
   "fluidloggable.config.title": "Fluidloggable",
   "fluidloggable.config.category.general": "General",
   "fluidloggable.config.category.dynamic_containers": "Dynamic Fluid Containers",
