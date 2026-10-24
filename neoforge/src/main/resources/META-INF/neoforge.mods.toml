@@ -1,13 +1,13 @@
 modLoader = "javafml"
 loaderVersion = "${neoforge_loader_version_range}"
 license = "${license}"
-issueTrackerURL="https://github.com/Leximon/Fluidlogged/issues"
+issueTrackerURL="https://github.com/NightEpiphany/Fluidloggable/issues"
 
 [[mods]]
 modId = "${mod_id}"
 version = "${version}"
 displayName = "${mod_name}"
-displayURL="https://github.com/Leximon/Fluidlogged"
+displayURL="https://github.com/NightEpiphany/Fluidloggable"
 logoFile="${mod_id}.png"
 credits="${credits}"
 authors = "${mod_author}"

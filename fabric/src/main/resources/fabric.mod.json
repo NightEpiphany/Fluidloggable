@@ -8,12 +8,14 @@
         "${mod_author}"
     ],
     "contributors": [
+        "Leximon (original author)",
         "MoreThanHidden",
         "PricelessKoala"
     ],
     "contact": {
-        "sources": "https://github.com/Leximon/Fluidlogged",
-        "issues": "https://github.com/Leximon/Fluidlogged/issues"
+        "homepage": "https://modrinth.com/mod/fluidloggable",
+        "sources": "https://github.com/NightEpiphany/Fluidloggable",
+        "issues": "https://github.com/NightEpiphany/Fluidloggable/issues"
     },
     "license": "${license}",
     "icon": "${mod_id}.png",
