@@ -12,6 +12,7 @@ import com.moigferdsrte.fluidloggable.network.ClientboundFluidUpdatePacket;
 public final class FluidloggableClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
+        com.moigferdsrte.fluidloggable.network.ClientCompatibilityNetworking.register();
         if (FluidloggableConfig.isClientOnlyCompatibilityModeEnabled()) {
             return;
         }

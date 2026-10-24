@@ -43,6 +43,10 @@ public class FluidloggableMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+        // Keep the connection guard available even when gameplay mixins are disabled.
+        if (mixinClassName.equals(MOD_PACKAGE + "mixin.client.ClientConfigurationPacketListenerMixin")) {
+            return true;
+        }
         if (isClientOnlyCompatibilityMode() && mixinClassName.startsWith(MOD_PACKAGE)) {
             return false;
         }

@@ -104,6 +104,7 @@
     "storage.ServerLevelMixin"
   ],
   "client": [
+    "client.ClientConfigurationPacketListenerMixin",
     "client.FluidRendererMixin",
     "client.RenderSectionRegionMixin",
     "client.SectionCompilerMixin",
