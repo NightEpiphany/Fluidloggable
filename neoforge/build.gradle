@@ -100,3 +100,20 @@ task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge)
 }
 
 tasks.modrinth.dependsOn(tasks.jar)
+
+// Load the real mod and its mixins for fluid packet/chunk regression tests.
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+neoForge {
+    unitTest {
+        enable()
+        testedMod = mods.fluidlogged
+    }
+}

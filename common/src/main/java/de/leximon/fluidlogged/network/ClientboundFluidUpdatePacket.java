@@ -1,13 +1,13 @@
 package de.leximon.fluidlogged.network;
 
 import de.leximon.fluidlogged.Fluidlogged;
+import de.leximon.fluidlogged.platform.services.Services;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 
 public record ClientboundFluidUpdatePacket(
@@ -20,7 +20,9 @@ public record ClientboundFluidUpdatePacket(
     public static final StreamCodec<FriendlyByteBuf, ClientboundFluidUpdatePacket> STREAM_CODEC = StreamCodec.composite(
       BlockPos.STREAM_CODEC,
       ClientboundFluidUpdatePacket::pos,
-      ByteBufCodecs.idMapper(Fluid.FLUID_STATE_REGISTRY),
+      ByteBufCodecs.idMapper(
+        id -> Services.PLATFORM.getFluidStateIdMapper().byIdOrThrow(id),
+        Fluidlogged::getFluidId),
       ClientboundFluidUpdatePacket::state,
       ClientboundFluidUpdatePacket::new);
 

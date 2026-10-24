@@ -10,6 +10,7 @@ import it.unimi.dsi.fastutil.shorts.ShortSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.IdMapper;
 import net.minecraft.core.SectionPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.material.Fluid;
@@ -22,6 +23,25 @@ import java.util.List;
 public class ForgePlatformHelper implements IPlatformHelper {
     
     private static final ConfigDefaults CONFIG_DEFAULTS = new ForgeConfigDefaults();
+    private static volatile IdMapper<FluidState> FLUID_STATES = new IdMapper<>();
+
+    public static void initializeFluidStateIdMapper() {
+        // Vanilla builds its table before NeoForge registers modded fluids.
+        // Keep vanilla IDs, then append every modded state in registry-name order
+        // so the client and server do not depend on mod registration order.
+        IdMapper<FluidState> states = new IdMapper<>();
+        for (FluidState state : Fluid.FLUID_STATE_REGISTRY) {
+            states.addMapping(state, Fluid.FLUID_STATE_REGISTRY.getId(state));
+        }
+        BuiltInRegistries.FLUID.keySet().stream().sorted().forEach(key -> {
+            for (FluidState state : BuiltInRegistries.FLUID.get(key).getStateDefinition().getPossibleStates()) {
+                if (states.getId(state) == -1) {
+                    states.add(state);
+                }
+            }
+        });
+        FLUID_STATES = states;
+    }
 
     @Override
     public Path getConfigPath() {
@@ -35,7 +55,7 @@ public class ForgePlatformHelper implements IPlatformHelper {
 
     @Override
     public IdMapper<FluidState> getFluidStateIdMapper() {
-        return Fluid.FLUID_STATE_REGISTRY;
+        return FLUID_STATES;
     }
 
     @Override

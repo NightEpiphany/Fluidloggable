@@ -4,9 +4,7 @@ import de.leximon.fluidlogged.mixin.extensions.LevelChunkSectionExtension;
 import de.leximon.fluidlogged.platform.services.Services;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
-import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
@@ -49,9 +47,16 @@ public class LevelChunkSectionMixin implements LevelChunkSectionExtension {
         return this.fluidlogged$fluidStates.get((short) (x << 8 | y << 4 | z));
     }
 
-    @Inject(method = "<init>(Lnet/minecraft/core/Registry;)V", at = @At("RETURN"))
-    private void injectInit(Registry<Biome> registry, CallbackInfo ci) {
-        fluidlogged$createAndSetFluidStatesMap();
+    @Inject(method = {
+        "<init>(Lnet/minecraft/core/Registry;)V",
+        "<init>(Lnet/minecraft/world/level/chunk/PalettedContainer;Lnet/minecraft/world/level/chunk/PalettedContainerRO;)V"
+    }, at = @At("RETURN"))
+    private void injectInit(CallbackInfo ci) {
+        // Sable creates sections directly from palettes instead of a biome registry.
+        // Cover both constructors without resetting data if constructors delegate.
+        if (this.fluidlogged$fluidStates == null) {
+            fluidlogged$createAndSetFluidStatesMap();
+        }
     }
 
     @Inject(method = "getFluidState", at = @At("RETURN"), cancellable = true)
@@ -86,7 +91,7 @@ public class LevelChunkSectionMixin implements LevelChunkSectionExtension {
 
         for (Short2ObjectMap.Entry<FluidState> entry : this.fluidlogged$fluidStates.short2ObjectEntrySet()) {
             buf.writeShort(entry.getShortKey());
-            buf.writeInt(Services.PLATFORM.getFluidStateIdMapper().getId(entry.getValue()));
+            buf.writeInt(Services.PLATFORM.getFluidStateIdMapper().getIdOrThrow(entry.getValue()));
         }
     }
 
@@ -98,7 +103,7 @@ public class LevelChunkSectionMixin implements LevelChunkSectionExtension {
 
         for (short i = 0; i < size; i++) {
             short pos = buf.readShort();
-            FluidState fluidState = Services.PLATFORM.getFluidStateIdMapper().byId(buf.readInt());
+            FluidState fluidState = Services.PLATFORM.getFluidStateIdMapper().byIdOrThrow(buf.readInt());
 
             this.fluidlogged$fluidStates.put(pos, fluidState);
         }
