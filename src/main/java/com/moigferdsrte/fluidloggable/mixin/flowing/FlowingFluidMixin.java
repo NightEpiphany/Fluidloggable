@@ -128,6 +128,20 @@ public abstract class FlowingFluidMixin {
 		}
 	}
 
+	@Inject(method = "canHoldFluid", at = @At("HEAD"), cancellable = true)
+	private static void fluidloggable$letFluidloggedBlocksAcceptFlow(
+		final BlockGetter level,
+		final BlockPos pos,
+		final BlockState state,
+		final Fluid fluid,
+		final CallbackInfoReturnable<Boolean> cir
+	) {
+		if (FluidloggedBlockStateSupport.isSupportedFluid(fluid)
+				&& FluidloggedBlockStateSupport.canStoreFluid(level, pos, state, fluid)) {
+			cir.setReturnValue(true);
+		}
+	}
+
 	@Inject(method = "spreadTo", at = @At("HEAD"), cancellable = true)
 	private void fluidloggable$spreadIntoFluidloggedBlock(
 		final LevelAccessor level,
