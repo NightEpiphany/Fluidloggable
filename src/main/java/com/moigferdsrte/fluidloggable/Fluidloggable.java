@@ -1,5 +1,6 @@
 package com.moigferdsrte.fluidloggable;
 
+import com.moigferdsrte.fluidloggable.network.CompatibilityNetworking;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 
@@ -18,7 +19,7 @@ public final class Fluidloggable implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		LOGGER.info("Initializing Fluidloggable");
-		com.moigferdsrte.fluidloggable.network.CompatibilityNetworking.register();
+		CompatibilityNetworking.register();
 		PayloadTypeRegistry.clientboundPlay().register(ClientboundFluidUpdatePacket.TYPE, ClientboundFluidUpdatePacket.STREAM_CODEC);
 	}
 

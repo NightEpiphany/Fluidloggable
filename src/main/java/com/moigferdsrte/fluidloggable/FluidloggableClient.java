@@ -1,6 +1,7 @@
 package com.moigferdsrte.fluidloggable;
 
 import com.moigferdsrte.fluidloggable.config.FluidloggableConfig;
+import com.moigferdsrte.fluidloggable.network.ClientCompatibilityNetworking;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -12,7 +13,7 @@ import com.moigferdsrte.fluidloggable.network.ClientboundFluidUpdatePacket;
 public final class FluidloggableClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        com.moigferdsrte.fluidloggable.network.ClientCompatibilityNetworking.register();
+        ClientCompatibilityNetworking.register();
         if (FluidloggableConfig.isClientOnlyCompatibilityModeEnabled()) {
             return;
         }
