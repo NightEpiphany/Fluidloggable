@@ -47,9 +47,10 @@ public abstract class FlowingFluidMixin {
 	}
 
 	@Shadow
-	private static boolean canHoldAnyFluid(final BlockState state) {
-		throw new AssertionError();
-	}
+	private static native boolean canHoldAnyFluid(final BlockState state);
+
+	@Shadow
+	private static native boolean canHoldFluid(final BlockGetter level, final BlockPos pos, final BlockState state, final Fluid newFluid);
 
 	@Shadow
 	protected abstract FluidState getNewLiquid(ServerLevel level, BlockPos pos, BlockState state);
@@ -59,6 +60,9 @@ public abstract class FlowingFluidMixin {
 
 	@Shadow
 	protected abstract void spread(ServerLevel level, BlockPos pos, BlockState state, FluidState fluidState);
+
+	@Shadow
+	public abstract Fluid getFlowing();
 
 	@Inject(method = "canMaybePassThrough", at = @At("HEAD"), cancellable = true)
 	private void fluidloggable$letStoredFluidPassThroughFluidloggedBlocks(
@@ -284,43 +288,39 @@ public abstract class FlowingFluidMixin {
 		return level.getFluidState(this.fluidloggable$lastCheckedFluidPos);
 	}
 
-	@Redirect(
-		method = "isWaterHole",
-		at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getFluidState()Lnet/minecraft/world/level/material/FluidState;")
-	)
-	private FluidState fluidloggable$isWaterHoleUsesStoredFluid(
-		final BlockState state,
+	@Inject(method = "isWaterHole", at = @At("HEAD"), cancellable = true)
+	private void fluidloggable$checkStoredFluidWaterHole(
 		final BlockGetter level,
 		final BlockPos topPos,
 		final BlockState topState,
 		final BlockPos bottomPos,
-		final BlockState bottomState
+		final BlockState bottomState,
+		final CallbackInfoReturnable<Boolean> cir
 	) {
-		return level.getFluidState(bottomPos);
-	}
+		final Fluid runningFluid = (Fluid)(Object)this;
+		if (!fluidloggable$isPassableFluidContainer(level, topPos, topState, runningFluid)
+				&& !fluidloggable$isPassableFluidContainer(level, bottomPos, bottomState, runningFluid)) {
+			return;
+		}
 
-	@Redirect(
-		method = "isWaterHole",
-		at = @At(
-				value = "INVOKE",
-				target = "Lnet/minecraft/world/level/material/FlowingFluid;canPassThroughWall(Lnet/minecraft/core/Direction;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"
-		)
-	)
-	private boolean fluidloggable$isWaterHoleIgnoresContainingBlockCollision(
-			final Direction direction,
-			final BlockGetter level,
-			final BlockPos sourcePos,
-			final BlockState sourceState,
-			final BlockPos targetPos,
-			final BlockState targetState
-	) {
-		return this.fluidloggable$canPassThroughStoredFluidWall(
-				direction,
-				level,
-				sourcePos,
-				sourceState,
-				targetPos,
-				targetState
+		final FluidState storedFluid = level.getFluidState(bottomPos);
+		cir.setReturnValue(
+				this.fluidloggable$canPassThroughStoredFluidWall(
+						Direction.DOWN,
+						level,
+						topPos,
+						topState,
+						bottomPos,
+						bottomState
+				)
+						&& (storedFluid.getType().isSame(runningFluid)
+								|| FluidloggedBlockStateSupport.canStoreFluid(
+										level,
+										bottomPos,
+										bottomState,
+										this.getFlowing()
+								)
+								|| canHoldFluid(level, bottomPos, bottomState, this.getFlowing()))
 		);
 	}
 

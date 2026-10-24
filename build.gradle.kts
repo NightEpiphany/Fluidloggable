@@ -37,7 +37,9 @@ dependencies {
 	implementation("maven.modrinth:modmenu:${providers.gradleProperty("modmenu_version").get()}")
 	implementation("maven.modrinth:cloth-config:${providers.gradleProperty("cloth_config_version").get()}")
 	// Sodium
-	implementation("maven.modrinth:AANobbMI:v4PSXean")
+	implementation("maven.modrinth:AANobbMI:g6ju16VJ")
+	// Lithium
+	implementation("maven.modrinth:gvQqBUqZ:xS0Q8LSi")
 	compileOnly("maven.modrinth:ox3rDp1B:4pyW4Uba")
 	compileOnly("maven.modrinth:create-fly:26.2-rc-2-6.0.9-1")
 	compileOnly("maven.modrinth:copycats-plus-createfly-port:Copycats+-Fabric-26.2-v1.16")
