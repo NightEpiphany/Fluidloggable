@@ -6,9 +6,16 @@ plugins {
 }
 
 base {
-	archivesName = providers.gradleProperty("archives_base_name")
+	archivesName = providers.gradleProperty("archives_base_name").map { "$it-fabric" }
 }
 
+
+// Keep the mod version unchanged while using a consistent distributable filename.
+tasks.withType<Jar>().configureEach {
+    val minecraftVersion = providers.gradleProperty("minecraft_version").get()
+    val modVersion = providers.gradleProperty("mod_version").get().removeSuffix("-mc$minecraftVersion")
+    archiveVersion = "${modVersion}_mc$minecraftVersion"
+}
 loom {
 	accessWidenerPath = file("src/main/resources/fluidloggable.accessWidener")
 }
