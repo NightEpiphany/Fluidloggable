@@ -4,7 +4,6 @@ import com.moigferdsrte.fluidloggable.block.LavaloggableBlockSupport;
 import com.moigferdsrte.fluidloggable.block.WaterloggableBlockSupport;
 import com.zurrtum.create.content.redstone.diodes.AbstractDiodeBlock;
 import com.zurrtum.create.content.redstone.diodes.ToggleLatchBlock;
-import com.zurrtum.create.foundation.block.RedStoneConnectBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -15,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ToggleLatchBlock.class)
-public abstract class ToggleLatchBlockMixin extends AbstractDiodeBlock implements RedStoneConnectBlock, SimpleWaterloggedBlock {
+public abstract class ToggleLatchBlockMixin extends AbstractDiodeBlock implements SimpleWaterloggedBlock {
     public ToggleLatchBlockMixin(Properties builder) {
         super(builder);
     }

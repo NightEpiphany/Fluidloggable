@@ -57,8 +57,8 @@ dependencies {
 	implementation ("maven.modrinth:kaleidoscope-tavern-refabricated:${providers.gradleProperty("kaleidoscope_tavern_version").get()}-fabric+mc${providers.gradleProperty("minecraft_version").get()}")
 	implementation ("maven.modrinth:kaleidoscope-nether-refabricated:${providers.gradleProperty("kaleidoscope_nether_version").get()}-fabric+mc${providers.gradleProperty("minecraft_version").get()}")
 	implementation ("maven.modrinth:kaleidoscope-end-refabricated:${providers.gradleProperty("kaleidoscope_end_version").get()}-fabric+mc${providers.gradleProperty("minecraft_version").get()}")
-	implementation("curse.maven:kaleidoscopechinesefood-refabricated-1674961:8990867")
-	implementation("curse.maven:kaleidoscope-world-liquor-refabricated-1693193:8958198")
+	implementation("curse.maven:kaleidoscopechinesefood-refabricated-1674961:9606316")
+	implementation("curse.maven:kaleidoscope-world-liquor-refabricated-1693193:9381306")
 	implementation("fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${providers.gradleProperty("forge_config_api_version").get()}")
 }
 
