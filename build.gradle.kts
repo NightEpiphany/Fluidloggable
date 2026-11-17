@@ -41,8 +41,8 @@ dependencies {
 	// Lithium
 	implementation("maven.modrinth:gvQqBUqZ:xS0Q8LSi")
 	compileOnly("maven.modrinth:ox3rDp1B:4pyW4Uba")
-	compileOnly("maven.modrinth:create-fly:26.2-rc-2-6.0.9-1")
-	compileOnly("maven.modrinth:copycats-plus-createfly-port:Copycats+-Fabric-26.2-v1.16")
+	compileOnly("maven.modrinth:create-fly:26.3-6.0.9-2")
+	compileOnly("curse.maven:createfly-copycats-port-1569572:9605184")
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	implementation("net.fabricmc.fabric-api:fabric-api:${providers.gradleProperty("fabric_api_version").get()}")
 	compileOnly("maven.modrinth:comforts:${providers.gradleProperty("comfort_version").get()}")
